@@ -3,6 +3,7 @@ import os
 from matplotlib import pyplot as plt
 from skimage.segmentation import find_boundaries
 import pandas as pd
+from skimage import exposure # Para usar .equalize_hist(img)
 
 
 
@@ -41,6 +42,7 @@ def findExtension(directory,extension='.npy'):
     full_path.sort()
     return files, full_path
 
+# To open just the middle slice for each nodule
 def getMiddleSlice(volume):
     sh = volume.shape
     
@@ -60,6 +62,7 @@ nodule_names, nodules = findExtension(os.path.join(curr_path,'images'))
 #remove the extension from the nodule names
 nodule_names = [os.path.splitext(x)[0] for x in nodule_names]
 
+#Find the masks
 mask_names, masks = findExtension(os.path.join(curr_path,'masks'))
 
 #read the metadata
@@ -74,7 +77,8 @@ texture = int(metadata[metadata['Filename']==nodule_names[index]]['texture'])
 
 
 
-nb = [0,120] #list of the image index to study
+nb = [0] #list of the image indexes to study/run
+# Este nb vai ter de ser a lista inteira depois
 
 #%%
 #_____________________________________
@@ -82,7 +86,7 @@ nb = [0,120] #list of the image index to study
 #_____________________________________
 
 
-
+# plot_args defines plot properties in a single variable
 plot_args={}
 plot_args['vmin']=0
 plot_args['vmax']=1
@@ -92,21 +96,40 @@ plot_args['cmap']='gray'
 for n in nb:
     nodule = np.load(nodules[n])
     mask = np.load(masks[n])
-    #since we have volume we must show only a slice
+    #since we have a volume we must show only a slice
     fig,ax = plt.subplots(1,2)
+    plt.title('Middle slice')
     ax[0].imshow(getMiddleSlice(nodule),**plot_args)
     ax[1].imshow(getMiddleSlice(mask),**plot_args)
     plt.show()
 
-#if instead you want to overlay
+#if instead you want to overlay (Imagem com os limites a verde)
 for n in nb:
     nodule = np.load(nodules[n])
     mask = np.load(masks[n])
     over = createOverlay(getMiddleSlice(nodule),getMiddleSlice(mask))
-    #since we have volume we must show only a slice
+    #getMidleSlice- since we have volume we must show only a slice
+    #createOverlay- Does the "Overlay" image, puts mask on top of nodule. 
+    #If contour=False the overlay is complete
     fig,ax = plt.subplots(1,1)
     ax.imshow(over,**plot_args)
+    plt.title('Overlay')
     plt.show()
+
+
+#%%
+#________________________________
+# PRE-PROCESSING
+#________________________________
+    
+for n in nb:
+    # Tentativa de aumentar o contraste. Dá uma coisa mt feia
+    more_contrast=exposure.equalize_adapthist(nodule[n]) 
+    fig,ax = plt.subplots(1,1)
+    ax.imshow(more_contrast, **plot_args)
+    plt.show()
+
+
 
 #%%
 #________________________________
