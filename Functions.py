@@ -4,6 +4,9 @@ import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
 from skimage.segmentation import find_boundaries
+from sklearn.preprocessing import StandardScaler
+from skimage.filters.rank import entropy
+from skimage.morphology import disk
 
 #_____________________________________
 # FIND EXTENSION DIRECTORY
@@ -49,6 +52,7 @@ def showImages(nb, nodule, mask):
     ax[1].imshow(getMiddleSlice(mask),**plot_args)
     plt.show()
 
+
 #_____________________________________
 # LOAD DATA
 #_____________________________________  
@@ -63,6 +67,9 @@ mask_names, masks = findExtension(os.path.join(curr_path,'masks'))   #Find the m
 
 ground_truth = pd.read_excel('ground_truth.xls') #read the metadata
 
+# For feature extraction
+features = []
+labels = []
 
 for n in images_indexes:
     nodule = np.load(nodules[n])
@@ -72,3 +79,27 @@ for n in images_indexes:
     texture = int(ground_truth[ground_truth['Filename']==nodule_names[n]]['texture'])
     
     
+#_____________________________________
+# FEATURE EXTRACTION
+#_______________________________________
+    
+    #collect intensity and local entropy
+    entrop = np.ravel(entropy(flat_nodule,disk(5)))
+    inten = np.ravel(nodule)
+    
+    
+    labels.append([1 for x in range(int(np.sum(mask)))])
+    
+    
+    features.append([entrop,inten])
+
+    entrop = np.ravel(entropy(nodule==0,disk(5)))
+    inten = np.ravel(nodule==0)
+    features.append([entrop,inten])
+    labels.append([0 for x in range(int(np.sum(mask==0)))])
+
+    
+X = np.hstack(features).T
+labels = np.hstack(labels)
+
+X = StandardScaler().fit_transform(X) # Para ter a certeza que tudo tem a mesma escala

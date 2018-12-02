@@ -218,7 +218,7 @@ for n in nb:
     labels.append([0 for x in range(int(np.sum(mask==0)))])
 
     
-features = np.hstack(features).T
+X = np.hstack(features).T
 labels = np.hstack(labels)
     
    
