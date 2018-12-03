@@ -7,6 +7,7 @@ from skimage.segmentation import find_boundaries
 from sklearn.preprocessing import StandardScaler
 from skimage.filters.rank import entropy
 from skimage.morphology import disk
+from sklearn.model_selection import train_test_split
 
 #_____________________________________
 # FIND EXTENSION DIRECTORY
@@ -68,6 +69,7 @@ mask_names, masks = findExtension(os.path.join(curr_path,'masks'))   #Find the m
 ground_truth = pd.read_excel('ground_truth.xls') #read the metadata
 
 # For feature extraction
+np.random.seed(0)
 features = []
 labels = []
 
@@ -78,28 +80,43 @@ for n in images_indexes:
     flat_mask=getMiddleSlice(mask)
     texture = int(ground_truth[ground_truth['Filename']==nodule_names[n]]['texture'])
     
-    
-#_____________________________________
-# FEATURE EXTRACTION
-#_______________________________________
-    
+    #_____________________________________
+    # FEATURE EXTRACTION
+    #_______________________________________
     #collect intensity and local entropy
+    
     entrop = np.ravel(entropy(flat_nodule,disk(5)))
-    inten = np.ravel(nodule)
+    inten = np.ravel(flat_nodule)
+        
+        
+    labels.append([1 for x in range(int(np.sum(flat_mask)))])
+    labels.append([0 for x in range(int(np.sum(flat_mask==0)))])
+        
+    features.append([entrop,inten])
     
-    
-    labels.append([1 for x in range(int(np.sum(mask)))])
-    
-    
+    entrop = np.ravel(entropy(flat_nodule==0,disk(5)))
+    inten = np.ravel(flat_nodule==0)
     features.append([entrop,inten])
 
-    entrop = np.ravel(entropy(nodule==0,disk(5)))
-    inten = np.ravel(nodule==0)
-    features.append([entrop,inten])
-    labels.append([0 for x in range(int(np.sum(mask==0)))])
 
-    
 X = np.hstack(features).T
 labels = np.hstack(labels)
 
 X = StandardScaler().fit_transform(X) # Para ter a certeza que tudo tem a mesma escala
+
+
+#X_train, X_val, y_train, y_val = train_test_split(X, labels, test_size=0.3)
+
+
+#_____________________________________
+# SVM AND K-NEIGHBORS
+#_______________________________________
+
+#from sklearn import svm
+#gamma = 1 # SVM RBF radius
+## fazer SVM
+#from sklearn.neighbors import KNeighborsClassifier
+#
+#knn=KNeighborsClassifier(n_neighbors=1)
+#knn.fit(X,labels)
+#print(knn.score(X, labels))
