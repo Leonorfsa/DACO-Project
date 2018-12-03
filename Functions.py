@@ -84,38 +84,33 @@ for n in images_indexes:
     #_______________________________________
     #collect intensity and local entropy
     
-    # primeiro guarda-se o objeto
+    intensity = np.ravel(flat_nodule)
     entrop = np.ravel(entropy(flat_nodule,disk(5)))
-    inten = np.ravel(flat_nodule)
-    labels.append([1 for x in range(int(np.sum(flat_mask)))])
-    features.append([entrop,inten])
     
-    
-    # Depois poe-se o background
-    entrop = np.ravel(entropy(flat_nodule==0,disk(5)))
-    inten = np.ravel(flat_nodule==0)
-    features.append([entrop,inten])
-    labels.append([0 for x in range(int(np.sum(flat_mask==0)))])
+    label=np.ravel(flat_mask) # Para pôr em linha
+    labels.append(label)
+    features.append([intensity,entrop]) # 
+
+    total_labels=np.hstack(labels)
+    total_features = np.hstack(features).T
 
 
-X = np.hstack(features).T
-labels = np.hstack(labels)
-
-X = StandardScaler().fit_transform(X) # Para ter a certeza que tudo tem a mesma escala
+total_features = StandardScaler().fit_transform(total_features) # Para ter a certeza que tudo tem a mesma escala
 
 
-#X_train, X_val, y_train, y_val = train_test_split(X, labels, test_size=0.3)
+X_train, X_val, y_train, y_val = train_test_split(total_features, total_labels, test_size=0.3)
 
 
 #_____________________________________
-# SVM AND K-NEIGHBORS
+# K-NEIGHBORS
 #_______________________________________
 
-#from sklearn import svm
-#gamma = 1 # SVM RBF radius
-## fazer SVM
-#from sklearn.neighbors import KNeighborsClassifier
-#
-#knn=KNeighborsClassifier(n_neighbors=1)
-#knn.fit(X,labels)
-#print(knn.score(X, labels))
+from sklearn import svm
+gamma = 1 # SVM RBF radius
+# fazer SVM
+from sklearn.neighbors import KNeighborsClassifier
+
+knn=KNeighborsClassifier(n_neighbors=1)
+knn.fit(X_train,y_train)
+print(knn.score(X_train, y_train))
+print(knn.score(X_val, y_val))
