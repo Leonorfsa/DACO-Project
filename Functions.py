@@ -69,7 +69,6 @@ mask_names, masks = findExtension(os.path.join(curr_path,'masks'))   #Find the m
 ground_truth = pd.read_excel('ground_truth.xls') #read the metadata
 
 # For feature extraction
-np.random.seed(0)
 features = []
 labels = []
 
@@ -85,18 +84,18 @@ for n in images_indexes:
     #_______________________________________
     #collect intensity and local entropy
     
+    # primeiro guarda-se o objeto
     entrop = np.ravel(entropy(flat_nodule,disk(5)))
     inten = np.ravel(flat_nodule)
-        
-        
     labels.append([1 for x in range(int(np.sum(flat_mask)))])
-    labels.append([0 for x in range(int(np.sum(flat_mask==0)))])
-        
     features.append([entrop,inten])
     
+    
+    # Depois poe-se o background
     entrop = np.ravel(entropy(flat_nodule==0,disk(5)))
     inten = np.ravel(flat_nodule==0)
     features.append([entrop,inten])
+    labels.append([0 for x in range(int(np.sum(flat_mask==0)))])
 
 
 X = np.hstack(features).T
