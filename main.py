@@ -64,12 +64,13 @@ total_features = StandardScaler().fit_transform(total_features) # Para ter a cer
 
 # Tirar o mesmo número de amostras de background e de nodulo
 
-sampledimage,sampledbackground=Functions.sample(gaussImage,flat_mask)
-Functions.show2DImages(sampledimage,sampledbackground)
+#sampledimage,sampledbackground=Functions.sample(gaussImage,flat_mask)
+#Functions.show2DImages(sampledimage,sampledbackground)
 X_train, X_val, y_train, y_val = train_test_split(total_features, total_labels, test_size=0.3)
 
 
-
+# CLASSIFICADORES
+# _______________
 # K-Neighbors
 n_neighbors=1
 knn=Functions.KNeighbors(n_neighbors, X_train, y_train)
