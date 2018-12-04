@@ -8,6 +8,8 @@ from sklearn.preprocessing import StandardScaler
 from skimage.filters.rank import entropy
 from skimage.morphology import disk
 from sklearn.model_selection import train_test_split
+from sklearn import svm
+from sklearn.neighbors import KNeighborsClassifier
 
 #_____________________________________
 # FIND EXTENSION DIRECTORY
@@ -39,78 +41,53 @@ def getMiddleSlice(volume):
 # SHOW IMAGES
 #_____________________________________
 
-def showImages(nb, nodule, mask):
+def show2DImages(nodule, mask):
     # plot_args defines plot properties in a single variable
     plot_args={}
     plot_args['vmin']=0
     plot_args['vmax']=1
     plot_args['cmap']='gray'
-
-    #since we have a volume we must show only a slice
     fig,ax = plt.subplots(1,2)
     plt.title('Middle slice')
-    ax[0].imshow(getMiddleSlice(nodule),**plot_args)
-    ax[1].imshow(getMiddleSlice(mask),**plot_args)
+    ax[0].imshow(nodule,**plot_args)
+    ax[1].imshow(mask,**plot_args)
     plt.show()
 
 
 #_____________________________________
-# LOAD DATA
-#_____________________________________  
+# Sample nodule and background
+#_____________________________________
 
-images_indexes=[0,10,15]
-
-curr_path = os.getcwd() #find the current working directory
-
-nodule_names, nodules = findExtension(os.path.join(curr_path,'images')) #find the files
-nodule_names = [os.path.splitext(x)[0] for x in nodule_names] #remove the extension from the nodule names
-mask_names, masks = findExtension(os.path.join(curr_path,'masks'))   #Find the masks
-
-ground_truth = pd.read_excel('ground_truth.xls') #read the metadata
-
-# For feature extraction
-features = []
-labels = []
-
-for n in images_indexes:
-    nodule = np.load(nodules[n])
-    mask = np.load(masks[n])
-    flat_nodule=getMiddleSlice(nodule)
-    flat_mask=getMiddleSlice(mask)
-    texture = int(ground_truth[ground_truth['Filename']==nodule_names[n]]['texture'])
+#sample points from a nodule mask
+np.random.seed(0)
+def sample(nodule,mask):
+    sampled = np.zeros(mask.shape)
+    sampled_background=np.zeros(mask.shape)
+    loc = np.nonzero(mask)
+    loc_zero=np.nonzero(mask==0)
+    indexes = [x for x in range(loc[0].shape[0])]
+    index_zeros=[x for x in range(loc_zero[0].shape[0])]
+    np.random.shuffle(indexes)
+    np.random.shuffle(index_zeros)
+    #get 10% of the points
+    #indexes10perc = indexes[:int(len(indexes)*0.1)]
     
-    #_____________________________________
-    # FEATURE EXTRACTION
-    #_______________________________________
-    #collect intensity and local entropy
-    
-    intensity = np.ravel(flat_nodule)
-    entrop = np.ravel(entropy(flat_nodule,disk(5)))
-    
-    label=np.ravel(flat_mask) # Para pôr em linha
-    labels.append(label)
-    features.append([intensity,entrop]) # 
-
-    total_labels=np.hstack(labels)
-    total_features = np.hstack(features).T
-
-
-total_features = StandardScaler().fit_transform(total_features) # Para ter a certeza que tudo tem a mesma escala
-
-
-X_train, X_val, y_train, y_val = train_test_split(total_features, total_labels, test_size=0.3)
-
+    sampled[loc[0][indexes],loc[1][indexes],loc[2][indexes]]=True
+    sampled_background[loc[0][index_zeros],loc[1][index_zeros],loc[2][index_zeros]]=True
+    return sampled, sampled_background
 
 #_____________________________________
 # K-NEIGHBORS
 #_______________________________________
 
-from sklearn import svm
+def KNeighbors(n_neighbors, X, y):
+    knn=KNeighborsClassifier(n_neighbors)
+    knn.fit(X,y)
+    return knn
+
+#_____________________________________
+# SVM
+#_______________________________________
+
 gamma = 1 # SVM RBF radius
 # fazer SVM
-from sklearn.neighbors import KNeighborsClassifier
-
-knn=KNeighborsClassifier(n_neighbors=1)
-knn.fit(X_train,y_train)
-print(knn.score(X_train, y_train))
-print(knn.score(X_val, y_val))
