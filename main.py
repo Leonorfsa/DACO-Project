@@ -38,6 +38,9 @@ for n in images_indexes:
     # Gaussian
     sigma=0.5
     gaussImage=PreProcessing.gaussFiltering(flat_nodule,sigma)
+    print(type(gaussImage))
+    h = Functions.hessian(gaussImage)
+    print(h)
     #gaussImage2=PreProcessing.gaussFiltering(images_indexes,nodules,0.2)
     Functions.show2DImages(gaussImage, flat_nodule)
     totalGauss.append(gaussImage)

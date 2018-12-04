@@ -1,5 +1,4 @@
 import os
-import cv2
 import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
@@ -36,6 +35,27 @@ def findExtension(directory,extension='.npy'):
 def getMiddleSlice(volume):
     sh = volume.shape
     return volume[...,np.int(sh[-1]/2)]    
+
+
+def hessian(ndarray):
+    """
+    Calculate the hessian matrix with finite differences
+    Parameters:
+       - x : ndarray
+    Returns:
+       an array of shape (x.dim, x.ndim) + x.shape
+       where the array[i, j, ...] corresponds to the second derivative x_ij
+    """
+    grad = np.gradient(ndarray) 
+    hessian = np.empty((ndarray.ndim, ndarray.ndim) + ndarray.shape, dtype=ndarray.dtype) 
+    for k, grad_k in enumerate(grad):
+        # iterate over dimensions
+        # apply gradient again to every component of the first derivative.
+        tmp_grad = np.gradient(grad_k) 
+        for l, grad_kl in enumerate(tmp_grad):
+            hessian[k, l, :, :] = grad_kl
+    return hessian
+
 
 #_____________________________________
 # SHOW IMAGES
