@@ -43,10 +43,15 @@ for n in images_indexes:
     print(h)
     #gaussImage2=PreProcessing.gaussFiltering(images_indexes,nodules,0.2)
     Functions.show2DImages(gaussImage, flat_nodule)
+    
+    #To make sure we have the same number of pixels for nodule and background
+    gaussImage,flat_mask=Functions.sample(gaussImage,flat_mask)
+    Functions.show2DImages(gaussImage, flat_mask)
+    
     totalGauss.append(gaussImage)
     
-    
     texture = int(ground_truth[ground_truth['Filename']==nodule_names[n]]['texture'])
+    
     #_____________________________________
     # FEATURE EXTRACTION
     #_______________________________________
@@ -58,24 +63,19 @@ for n in images_indexes:
     label=np.ravel(flat_mask) # Para pôr em linha
     labels.append(label)
     features.append([intensity,entrop]) # 
-
     total_labels=np.hstack(labels)
     total_features = np.hstack(features).T
     
 
 total_features = StandardScaler().fit_transform(total_features) # Para ter a certeza que tudo tem a mesma escala
 
-# Tirar o mesmo número de amostras de background e de nodulo
-
-#sampledimage,sampledbackground=Functions.sample(gaussImage,flat_mask)
-#Functions.show2DImages(sampledimage,sampledbackground)
 X_train, X_val, y_train, y_val = train_test_split(total_features, total_labels, test_size=0.3)
 
 
 # CLASSIFICADORES
 # _______________
 # K-Neighbors
-n_neighbors=1
+n_neighbors=5
 knn=Functions.KNeighbors(n_neighbors, X_train, y_train)
 print(knn.score(X_train, y_train))
 print(knn.score(X_val, y_val))

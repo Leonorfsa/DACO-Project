@@ -79,22 +79,25 @@ def show2DImages(nodule, mask):
 #_____________________________________
 
 #sample points from a nodule mask
-#np.random.seed(0)
-#def sample(nodule,mask):
-#    sampled = np.zeros(mask.shape)
-#    sampled_background=np.zeros(mask.shape)
-#    loc = np.nonzero(mask)
-#    loc_zero=np.nonzero(mask==0)
-#    indexes = [x for x in range(loc[0].shape[0])]
-#    index_zeros=[x for x in range(loc_zero[0].shape[0])]
-#    np.random.shuffle(indexes)
-#    np.random.shuffle(index_zeros)
-#    #get 10% of the points
-#    #indexes10perc = indexes[:int(len(indexes)*0.1)]
-#    
-#    sampled[loc[0][indexes],loc[1][indexes],loc[2][indexes]]=True
-#    sampled_background[loc[0][index_zeros],loc[1][index_zeros],loc[2][index_zeros]]=True
-#    return sampled, sampled_background
+np.random.seed(0)
+def sample(nodule,mask):
+    sampledmask = np.zeros(mask.shape)
+    sampled_background=np.zeros((mask==0).shape)
+    loc = np.nonzero(mask)
+    loc_zero=np.nonzero(mask==0)
+    indexes = [x for x in range(loc[0].shape[0])]
+    indexes_zeros=[x for x in range(loc_zero[0].shape[0])]
+    np.random.shuffle(indexes)
+    np.random.shuffle(indexes_zeros)
+    #get 10% of the points
+    indexes10perc = indexes[:int(len(indexes)*0.3)]
+    indexes10perc_background=indexes_zeros[:int(len(indexes)*0.3)]
+    
+    sampledmask[loc[0][indexes10perc],loc[1][indexes10perc]]=True
+    sampled_background[loc_zero[0][indexes10perc_background],loc_zero[1][indexes10perc_background]]=True
+    sampledtotal=sampledmask+sampled_background
+    samplednodule=nodule*sampledtotal
+    return samplednodule,sampledmask
 
 #_____________________________________
 # K-NEIGHBORS
