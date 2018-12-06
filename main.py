@@ -1,12 +1,12 @@
 import os
 import pandas as pd
-import numpy as np
+import numpy as npS
 from sklearn.preprocessing import StandardScaler
 from skimage.filters.rank import entropy
 from skimage.morphology import disk
 from sklearn.model_selection import train_test_split
 import Functions 
-import PreProcessing
+from skimage.feature import hessian_matrix, hessian_matrix_eigvals
 from matplotlib import pyplot as plt
 plt.close('all')
 np.random.seed(0) # To avoid changes in random choice
@@ -28,27 +28,35 @@ ground_truth = pd.read_excel('ground_truth.xls') #read the metadata
 features = []
 labels = []
 totalGauss=[]
+eigValues=[]
 for n in images_indexes:
     nodule = np.load(nodules[n])
     mask = np.load(masks[n])
     flat_nodule=Functions.getMiddleSlice(nodule) #since we have a volume we must show only a slice
     flat_mask=Functions.getMiddleSlice(mask)
-    Functions.show2DImages(flat_nodule, flat_mask)
+    #Functions.show2DImages(flat_nodule, flat_mask)
+    
+    #já não é preciso fazer o filtro gaussiano porque esta função faz 
+    sigma=0.5
+    (Hrr, Hrc, Hcc) = hessian_matrix(flat_nodule, sigma=sigma, order='rc')
+    eigValues = hessian_matrix_eigvals((Hrr, Hrc, Hcc))
+    #print(eigValues[0])
+    #.print(eigValues[1])
     
     # Gaussian
-    sigma=0.5
-    gaussImage=PreProcessing.gaussFiltering(flat_nodule,sigma)
-    print(type(gaussImage))
-    h = Functions.hessian(gaussImage)
-    print(h)
+    
+   #gaussImage=PreProcessing.gaussFiltering(flat_nodule,sigma)
+   # print(type(gaussImage))
+   # h = Functions.hessian(gaussImage)
+   # print(h)
     #gaussImage2=PreProcessing.gaussFiltering(images_indexes,nodules,0.2)
-    Functions.show2DImages(gaussImage, flat_nodule)
+    #Functions.show2DImages(nodule, flat_nodule)
     
     #To make sure we have the same number of pixels for nodule and background
-    gaussImage,flat_mask=Functions.sample(gaussImage,flat_mask)
-    Functions.show2DImages(gaussImage, flat_mask)
+    nodule,flat_mask=Functions.sample(flat_nodule,flat_mask)
+    Functions.show2DImages(flat_nodule, flat_mask)
     
-    totalGauss.append(gaussImage)
+    #totalGauss.append(gaussImage)
     
     texture = int(ground_truth[ground_truth['Filename']==nodule_names[n]]['texture'])
     
@@ -57,8 +65,8 @@ for n in images_indexes:
     #_______________________________________
     #collect intensity and local entropy
     
-    intensity = np.ravel(gaussImage)
-    entrop = np.ravel(entropy(gaussImage,disk(5)))
+    intensity = np.ravel(flat_nodule)
+    entrop = np.ravel(entropy(flat_nodule,disk(5)))
     
     label=np.ravel(flat_mask) # Para pôr em linha
     labels.append(label)
