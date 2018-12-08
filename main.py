@@ -6,6 +6,7 @@ from skimage.filters.rank import entropy
 from skimage.morphology import disk
 from sklearn.model_selection import train_test_split
 import Functions 
+import PreProcessing
 from guidedFilter import guidedFilt
 from skimage.feature import hessian_matrix, hessian_matrix_eigvals
 from matplotlib import pyplot as plt
@@ -35,18 +36,16 @@ for n in images_indexes:
     mask = np.load(masks[n])
     flat_nodule=Functions.getMiddleSlice(nodule) #since we have a volume we must show only a slice
     flat_mask=Functions.getMiddleSlice(mask)
-    #Functions.show2DImages(flat_nodule, flat_mask)
+    Functions.show2DImages(flat_nodule, flat_mask)
     
-    #já não é preciso fazer o filtro gaussiano porque esta função faz 
-    sigma=0.5
     #(Hrr, Hrc, Hcc) = hessian_matrix(flat_nodule, sigma=sigma, order='rc')
     #eigValues = hessian_matrix_eigvals((Hrr, Hrc, Hcc))
     #print(eigValues[0])
     #.print(eigValues[1])
     
     # Gaussian
-    
-   #gaussImage=PreProcessing.gaussFiltering(flat_nodule,sigma)
+    sigma=0.5
+    gaussImage=PreProcessing.gaussFiltering(flat_nodule,sigma)
    # print(type(gaussImage))
    # h = Functions.hessian(gaussImage)
    # print(h)
@@ -55,19 +54,28 @@ for n in images_indexes:
     
     #To make sure we have the same number of pixels for nodule and background
     nodule,flat_mask=Functions.sample(flat_nodule,flat_mask)
-    Functions.show2DImages(flat_nodule, flat_mask)
+    Functions.show2DImages(flat_nodule, nodule)
     
-    #totalGauss.append(gaussImage)
+    totalGauss.append(gaussImage)
     
-    texture = int(ground_truth[ground_truth['Filename']==nodule_names[n]]['texture'])
+    #texture = int(ground_truth[ground_truth['Filename']==nodule_names[n]]['texture'])
     
+    # Guided Filtering 
+    p=gaussImage
+    r=16
+    eps=0.01
+    q=np.zeros(gaussImage.shape)
+    q=guidedFilt(gaussImage,p,r,eps)
+    I_enhanced=(gaussImage-q)*5+q
+    Functions.show2DImages(q,I_enhanced)
+        
     #_____________________________________
     # FEATURE EXTRACTION
     #_______________________________________
     #collect intensity and local entropy
     
-    intensity = np.ravel(flat_nodule)
-    entrop = np.ravel(entropy(flat_nodule,disk(5)))
+    intensity = np.ravel(I_enhanced)
+    entrop = np.ravel(entropy(I_enhanced,disk(5)))
     
     label=np.ravel(flat_mask) # Para pôr em linha
     labels.append(label)
@@ -94,20 +102,4 @@ print(knn.score(X_val, y_val))
 
 
 
-I=flat_nodule
-p=I
-r=16
-eps=0.01
 
-q=np.zeros(I.shape)
-
-q=guidedFilt(I,p,r,eps)
-#q=guidedFilt(I(...,...,2),p(...,...,2),r,eps)
-#q=guidedFilt(I(...,...,3),p(...,...,3),r,eps)
-
-I_enhanced=(I-q)*5+q
-
-fig,ax = plt.subplots(1,3)
-ax[0].imshow(I,[0,1])
-ax[1].imshow(q,[0,1])
-ax[2].imshow(I_enhanced,[0,1])
