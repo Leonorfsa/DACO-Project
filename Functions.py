@@ -64,7 +64,7 @@ def show2DImages(nodule, mask):
 #_____________________________________
 
 #sample points from a nodule mask
-np.random.seed(0)
+
 def sample(nodule,mask):
     sampledmask = np.zeros(mask.shape)
     sampled_background=np.zeros((mask==0).shape)

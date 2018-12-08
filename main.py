@@ -8,6 +8,7 @@ from skimage.morphology import disk
 from skimage.feature import shape_index
 from sklearn.model_selection import train_test_split
 import Functions 
+from guidedFilter import guidedFilt
 from skimage.feature import hessian_matrix, hessian_matrix_eigvals
 from matplotlib import pyplot as plt
 plt.close('all')
@@ -37,12 +38,16 @@ for n in images_indexes:
     flat_nodule=Functions.getMiddleSlice(nodule) #since we have a volume we must show only a slice
     flat_mask=Functions.getMiddleSlice(mask)
     #Functions.show2DImages(flat_nodule, flat_mask)
-    
+
     #utilizar 7 sigmas como referido no paper com 0.5 de step
     sigmas = [0.5,1.0,1.5,2.0,2.5,3.0,3.5]
     eigValues = []
     h_elem_aux = []
     h_elem_max = ()
+    
+    #já não é preciso fazer o filtro gaussiano porque esta função faz 
+    #(Hrr, Hrc, Hcc) = hessian_matrix(flat_nodule, sigma=sigma, order='rc')
+    #eigValues = hessian_matrix_eigvals((Hrr, Hrc, Hcc))
     
     for s in sigmas:
         #já não é preciso fazer o filtro gaussiano porque esta função faz 
@@ -122,3 +127,25 @@ knn=Functions.KNeighbors(n_neighbors, X_train, y_train)
 print(knn.score(X_train, y_train))
 print(knn.score(X_val, y_val))
 
+
+
+
+
+
+I=flat_nodule
+p=I
+r=16
+eps=0.01
+
+q=np.zeros(I.shape)
+
+q=guidedFilt(I,p,r,eps)
+#q=guidedFilt(I(...,...,2),p(...,...,2),r,eps)
+#q=guidedFilt(I(...,...,3),p(...,...,3),r,eps)
+
+I_enhanced=(I-q)*5+q
+
+fig,ax = plt.subplots(1,3)
+ax[0].imshow(I,[0,1])
+ax[1].imshow(q,[0,1])
+ax[2].imshow(I_enhanced,[0,1])
