@@ -45,12 +45,16 @@ def getMiddleSlice(volume):
 def show2DImages(nodule, mask):
     # plot_args defines plot properties in a single variable
     plot_args={}
-    plot_args['vmin']=0
-    plot_args['vmax']=1
-    plot_args['cmap']='gray'
+    
     fig,ax = plt.subplots(1,2)
     plt.title('Middle slice')
+    #para adaptar os diferentes niveis de intensidade da imagem que passamos
+    plot_args['vmin']=np.min(nodule)
+    plot_args['vmax']=np.max(nodule)
     ax[0].imshow(nodule,**plot_args)
+    plot_args['vmin']=np.min(mask)
+    plot_args['vmax']=np.max(mask)
+    plot_args['cmap']='gray'
     ax[1].imshow(mask,**plot_args)
     plt.show()
 
@@ -60,7 +64,7 @@ def show2DImages(nodule, mask):
 #_____________________________________
 
 #sample points from a nodule mask
-np.random.seed(0)
+
 def sample(nodule,mask):
     sampledmask = np.zeros(mask.shape)
     sampled_background=np.zeros((mask==0).shape)
