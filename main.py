@@ -103,34 +103,34 @@ for n in images_indexes:
     I_enhanced=(flat_nodule-q)*5+q
     Functions.show2DImages(q,I_enhanced)
         
-    #%%_____________________________________
-    #         FEATURE EXTRACTION
-    #_______________________________________
-    #collect intensity and local entropy
-    
-    intensity = np.ravel(I_enhanced)
-    entrop = np.ravel(entropy(I_enhanced,disk(5)))
-    
-    label=np.ravel(flat_mask) # Para pôr em linha
-    labels.append(label)
-    features.append([intensity,entrop]) # 
-    total_labels=np.hstack(labels)
-    total_features = np.hstack(features).T
-    
-
-total_features = StandardScaler().fit_transform(total_features) # Para ter a certeza que tudo tem a mesma escala
-
-X_train, X_val, y_train, y_val = train_test_split(total_features, total_labels, test_size=0.3)
-
-
-#%%_________________
-#   CLASSIFICADORES
-# __________________
-# K-Neighbors
-n_neighbors=5
-knn=Functions.KNeighbors(n_neighbors, X_train, y_train)
-print(knn.score(X_train, y_train))
-print(knn.score(X_val, y_val))
-
-
-
+#    #%%_____________________________________
+#    #         FEATURE EXTRACTION
+#    #_______________________________________
+#    #collect intensity and local entropy
+#    
+#    intensity = np.ravel(I_enhanced)
+#    entrop = np.ravel(entropy(I_enhanced,disk(5)))
+#    
+#    label=np.ravel(flat_mask) # Para pôr em linha
+#    labels.append(label)
+#    features.append([intensity,entrop]) # 
+#    total_labels=np.hstack(labels)
+#    total_features = np.hstack(features).T
+#    
+#
+#total_features = StandardScaler().fit_transform(total_features) # Para ter a certeza que tudo tem a mesma escala
+#
+#X_train, X_val, y_train, y_val = train_test_split(total_features, total_labels, test_size=0.3)
+#
+#
+##%%_________________
+##   CLASSIFICADORES
+## __________________
+## K-Neighbors
+#n_neighbors=5
+#knn=Functions.KNeighbors(n_neighbors, X_train, y_train)
+#print(knn.score(X_train, y_train))
+#print(knn.score(X_val, y_val))
+#
+#
+#
