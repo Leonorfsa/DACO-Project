@@ -59,7 +59,8 @@ for n in images_indexes:
     for i in range(len(h_elem_aux)-1):    
         h_elem_max = np.maximum(h_elem_aux[i],h_elem_aux[i+1])
         
-    eigValues = hessian_matrix_eigvals(h_elem_max) 
+    Hxx=Hyy=None
+    eigValues = Functions.hessian_matrix_eigvals(h_elem_max)
     #fazer o plot para o primeiro valor e segundo valor de eig values de cada pixel 
     Functions.show2DImages(eigValues[0],flat_nodule)
     Functions.show2DImages(eigValues[1],flat_nodule)
@@ -88,7 +89,7 @@ for n in images_indexes:
     nodule,flat_mask=Functions.sample(flat_nodule,flat_mask)
     Functions.show2DImages(flat_nodule, nodule)
     
-    totalGauss.append(gaussImage)
+    #totalGauss.append(gaussImage)
     
     #texture = int(ground_truth[ground_truth['Filename']==nodule_names[n]]['texture'])
     
