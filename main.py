@@ -41,46 +41,23 @@ for n in images_indexes:
 
     #utilizar 7 sigmas como referido no paper com 0.5 de step
     sigmas = [0.5,1.0,1.5,2.0,2.5,3.0,3.5]
-    eigValues = []
-    h_elem_aux = []
-    h_elem_max = ()
-    
-    #já não é preciso fazer o filtro gaussiano porque esta função faz 
-    #(Hrr, Hrc, Hcc) = hessian_matrix(flat_nodule, sigma=sigma, order='rc')
-    #eigValues = hessian_matrix_eigvals((Hrr, Hrc, Hcc))
-    
-    for s in sigmas:
-        #já não é preciso fazer o filtro gaussiano porque esta função faz 
-        #para os vários sigmas usados vamos guardar apenas o tuplo com os maiores valores de hrr, hrc, hcc
-        (Hrr, Hrc, Hcc) = hessian_matrix(flat_nodule, sigma = s, order='rc')
-        h_elem_aux.append((Hrr, Hrc, Hcc))
         
-    for i in range(len(h_elem_aux)-1):    
-        h_elem_max = np.maximum(h_elem_aux[i],h_elem_aux[i+1])
-        
-    eigValues = hessian_matrix_eigvals(h_elem_max) 
+    eigValues = Functions.eigValues(sigmas, flat_nodule)
+    
     #fazer o plot para o primeiro valor e segundo valor de eig values de cada pixel 
     Functions.show2DImages(eigValues[0],flat_nodule)
     Functions.show2DImages(eigValues[1],flat_nodule)
         
-    shapeind0_aux = []
-    shapeind1_aux = []
     #calcular shape index
-    for s in sigmas:
-        shapeind0_aux.append(shape_index(eigValues[0],s))
-        shapeind1_aux.append(shape_index(eigValues[1],s))
-    
-    #shape index FINAIS
-    #extrair o maiores shape index resultantes da aplicação dos diferentes sigmas
-    for i in range(len(shapeind0_aux)-1):
-        shapeind0 = np.maximum(shapeind0_aux[i],shapeind0_aux[i+1])    
-        shapeind1 = np.maximum(shapeind1_aux[i],shapeind1_aux[i+1])
-   
+    shapeindex = Functions.shapeindex(eigValues)
+    #shapeindex = (2/math.pi)*np.arctan((eigValues[1]+eigValues[0])/(eigValues[1])-eigValues[0])
+    Functions.show2DImages(shapeindex,flat_nodule)
     #calcular curvedness
-    cv = []
-    for i in range(eigValues.shape[1]):
-        for j in range(eigValues.shape[2]):
-            cv.append(math.sqrt((math.pow(eigValues[0][i][j],2)+(math.pow(eigValues[1][i][j],2)))))
+    cv = Functions.curvedness(eigValues)
+   # cv = []
+    #for i in range(eigValues.shape[1]):
+     #   for j in range(eigValues.shape[2]):
+      #      cv.append(math.sqrt((math.pow(eigValues[0][i][j],2)+(math.pow(eigValues[1][i][j],2)))))
    
         
     # Gaussian

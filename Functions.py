@@ -1,6 +1,8 @@
 import os
 import pandas as pd
 import numpy as np
+import random
+import math
 from matplotlib import pyplot as plt
 from skimage.segmentation import find_boundaries
 from sklearn.preprocessing import StandardScaler
@@ -9,6 +11,9 @@ from skimage.morphology import disk
 from sklearn.model_selection import train_test_split
 from sklearn import svm
 from sklearn.neighbors import KNeighborsClassifier
+from itertools import combinations_with_replacement
+from skimage.feature import hessian_matrix, hessian_matrix_eigvals
+from warnings import warn
 
 #_____________________________________
 # FIND EXTENSION DIRECTORY
@@ -37,6 +42,64 @@ def getMiddleSlice(volume):
     return volume[...,np.int(sh[-1]/2)]    
 
 
+def _image_orthogonal_matrix22_eigvals(M00, M01, M11):
+    l1 = (M00 + M11) / 2 + np.sqrt(4 * M01 ** 2 + (M00 - M11) ** 2) / 2
+    l2 = (M00 + M11) / 2 - np.sqrt(4 * M01 ** 2 + (M00 - M11) ** 2) / 2
+    return l1, l2
+
+
+def _hessian_matrix_image(H_elems):
+    """Convert the upper-diagonal elements of the Hessian matrix to a matrix.
+    Parameters
+    ----------
+    H_elems : list of array
+        The upper-diagonal elements of the Hessian matrix, as returned by
+        `hessian_matrix`.
+    Returns
+    -------
+    hessian_image : array
+        An array of shape ``(M, N[, ...], image.ndim, image.ndim)``,
+        containing the Hessian matrix corresponding to each coordinate.
+    """
+    image = H_elems[0]
+    hessian_image = np.zeros(image.shape + (image.ndim, image.ndim))
+    for idx, (row, col) in \
+            enumerate(combinations_with_replacement(range(image.ndim), 2)):
+        hessian_image[..., row, col] = H_elems[idx]
+        hessian_image[..., col, row] = H_elems[idx]
+    return hessian_image
+
+
+def eigValues(sigmas, flat_nodule):
+    #já não é preciso fazer o filtro gaussiano porque esta função faz 
+    #(Hrr, Hrc, Hcc) = hessian_matrix(flat_nodule, sigma=sigma, order='rc')
+    #eigValues = hessian_matrix_eigvals((Hrr, Hrc, Hcc))
+    eigValues = []
+    h_elem_aux = []
+    h_elem_max = ()
+    
+    for s in sigmas:
+        #já não é preciso fazer o filtro gaussiano porque esta função faz 
+        #para os vários sigmas usados vamos guardar apenas o tuplo com os maiores valores de hrr, hrc, hcc
+        (Hrr, Hrc, Hcc) = hessian_matrix(flat_nodule, sigma = s, order='rc')
+        h_elem_aux.append((Hrr, Hrc, Hcc))
+        
+    for i in range(len(h_elem_aux)-1):    
+        h_elem_max = np.maximum(h_elem_aux[i],h_elem_aux[i+1])
+        
+    eigValues = hessian_matrix_eigvals(h_elem_max) 
+    return eigValues
+
+def shapeindex(eigValues):
+    shapeindex = (2/math.pi)*np.arctan((eigValues[1]+eigValues[0])/(eigValues[1])-eigValues[0])
+    return shapeindex
+
+def curvedness(eigValues):
+    cv = []
+    for i in range(eigValues.shape[1]):
+        for j in range(eigValues.shape[2]):
+            cv.append(math.sqrt((math.pow(eigValues[0][i][j],2)+(math.pow(eigValues[1][i][j],2)))))
+    return cv
 
 #_____________________________________
 # SHOW IMAGES
@@ -45,16 +108,12 @@ def getMiddleSlice(volume):
 def show2DImages(nodule, mask):
     # plot_args defines plot properties in a single variable
     plot_args={}
-    
+    plot_args['vmin']=0
+    plot_args['vmax']=1
+    plot_args['cmap']='gray'
     fig,ax = plt.subplots(1,2)
     plt.title('Middle slice')
-    #para adaptar os diferentes niveis de intensidade da imagem que passamos
-    plot_args['vmin']=np.min(nodule)
-    plot_args['vmax']=np.max(nodule)
     ax[0].imshow(nodule,**plot_args)
-    plot_args['vmin']=np.min(mask)
-    plot_args['vmax']=np.max(mask)
-    plot_args['cmap']='gray'
     ax[1].imshow(mask,**plot_args)
     plt.show()
 
@@ -64,7 +123,7 @@ def show2DImages(nodule, mask):
 #_____________________________________
 
 #sample points from a nodule mask
-
+np.random.seed(0)
 def sample(nodule,mask):
     sampledmask = np.zeros(mask.shape)
     sampled_background=np.zeros((mask==0).shape)
@@ -84,6 +143,40 @@ def sample(nodule,mask):
     samplednodule=nodule*sampledtotal
     return samplednodule,sampledmask
 
+
+def sampling2(total_features,total_labels, number_pixels_each_label):
+    #This functions takes the matrix containing all features (in which each line corresponds to a pixel in the original
+    #image) and the array containing all labels and samples full lines, assuring the number of nodule and non-nodule
+    #pixels is the same.The quantity of pixels sampled for each label is defined as an inpt
+    #Returns: a matrix of the sampled features and an array of the according labels
+    
+    #These variables are created as lists to make append easier (Later will be converted to arrays)
+    sampled_features=[]
+    sampled_labels=[]
+    random.seed(0)
+    
+    #Select random pixels with label 1 (Quantity is as desired by user)
+    loc_label1 = np.where(total_labels == 1)[0] #Store the indexes of the pixels which label is equal to 1
+    random.shuffle(loc_label1)
+    sampled_label1_indexes=loc_label1[:number_pixels_each_label] #Select only the quantity refered as an input rgument
+    
+    #Select random pixels with label 0 (Quantity must be equal to the number of sampled pixels with label 1)
+    loc_label0=np.where(total_labels == 0)[0] #Store the indexes of the pixels which label is equal to 0
+    random.shuffle(loc_label0)
+    sampled_label0_indexes=loc_label0[:number_pixels_each_label] #Select only the quantity refered as an input rgument
+    
+    
+    for i in range(len(total_labels)):
+        if (i in sampled_label1_indexes or i in sampled_label0_indexes):
+           sampled_labels.append(total_labels[i])
+           sampled_features.append(total_features[i][:])
+    
+    
+    #Conversion back to arrays
+    sampled_labels=np.asarray(sampled_labels)
+    sampled_features = np.vstack(sampled_features)
+    return sampled_labels,sampled_features       
+
 #_____________________________________
 # K-NEIGHBORS
 #_______________________________________
@@ -99,3 +192,28 @@ def KNeighbors(n_neighbors, X, y):
 
 gamma = 1 # SVM RBF radius
 # fazer SVM
+
+
+#_____________________________________
+# PREORMANCE EVALUATING
+#_______________________________________
+
+def confusionMatrixCalculator(prediction,GT):
+    TP=0
+    TN=0
+    FP=0
+    FN=0
+    for i in range(len(prediction)):
+        if (prediction[i]==GT[i]):
+            if (prediction[i]==1):
+                TP+=1
+            else:
+                TN+=1
+        else:
+            if (prediction[i]==1):
+                FP+=1
+            else:
+                FN+=1
+        return TP, TN, FP, FN
+    
+    

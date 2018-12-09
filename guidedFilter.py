@@ -1,6 +1,6 @@
 import numpy as np
 import numpy.matlib as ml
-import cv2
+#import cv2
 from matplotlib import pyplot as plt
 
 def boxfilter(imSrc,r):
