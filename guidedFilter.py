@@ -3,12 +3,13 @@ import numpy.matlib as ml
 
 def boxfilter(imSrc,r):
     
-#   BOXFILTER  -  box filtering using cumulative sum (based on the work by: 
+#   Box filtering using cumulative sum (based on the work by: 
 #   He Kaiming, Jian Sun, and Xiaoou Tang. "Guided image filtering.")
 #
 #   - Definition imDst(x, y)=sum(sum(imSrc(x-r:x+r,y-r:y+r)));
 #   - Running time independent of r; 
 #   - Equivalent to the function colfilt() on Matlab but much faster.
+    
     [hei,wid]=imSrc.shape
     imDst=np.zeros(imSrc.shape)
 
@@ -16,17 +17,17 @@ def boxfilter(imSrc,r):
     imCum=np.cumsum(imSrc,0)
     
     # Difference over Y axis
-    imDst[range(0, r+1),:]=imCum[(range(r, 2*r+1)),:]
-    imDst[range(r+1,hei-r),...]=imCum[(range(2*r+1,hei)),...]-imCum[(range(0,hei-2*r-1)),...]
-    imDst[(range(hei-r,hei)),...]=ml.repmat(imCum[hei-1,...], r,1)-imCum[(range(hei-2*r-1,hei-r-1)),...]
+    imDst[range(0, r+1),...]=imCum[(range(r, 2*r+1)),...]
+    imDst[range(r+1,hei-r),...]=imCum[(range(2*r+1,hei)),...]-imCum[(range(1,hei-2*r)),...]
+    imDst[(range(hei-r,hei)),...]=ml.repmat(imCum[hei-1,...], r,1)-imCum[(range(hei-2*r,hei-r)),...]
     
     # Cumulative sum over X axis
     imCum=np.cumsum(imDst,1)
     
     # Difference over X axis
-    imDst[:,range(0, r+1)]=imCum[:,(range(r, 2*r+1))]
-    imDst[...,range(r+1,wid-r)]=imCum[:,(range(2*r+1,wid))]-imCum[...,(range(0,wid-2*r-1))]
-    imDst[...,(range(wid-r,wid))]=ml.repmat(imCum[wid-1,...], r,1).T-imCum[...,(range(wid-2*r-1,wid-r-1))]
+    imDst[...,range(0, r+1)]=imCum[...,(range(r, 2*r+1))]
+    imDst[...,range(r+1,wid-r)]=imCum[:,(range(2*r+1,wid))]-imCum[...,(range(1,wid-2*r))]
+    imDst[...,(range(wid-r,wid))]=ml.repmat(imCum[wid-1,...], r,1).T-imCum[...,(range(wid-2*r,wid-r))]
     
     return imDst
     

@@ -44,15 +44,24 @@ def getMiddleSlice(volume):
 # SHOW IMAGES
 #_____________________________________
 
-def show2DImages(nodule, mask):
+def show2DImages(nodule, mask, addapt=0):
     # plot_args defines plot properties in a single variable
     plot_args={}
-    plot_args['vmin']=0
-    plot_args['vmax']=1
     plot_args['cmap']='gray'
     fig,ax = plt.subplots(1,2)
     plt.title('Middle slice')
-    ax[0].imshow(nodule,**plot_args)
+    if addapt==1:
+        plot_args['vmin']=np.min(nodule)
+        plot_args['vmax']=np.max(nodule)
+        ax[0].imshow(nodule,**plot_args)
+
+    else:
+        plot_args['vmin']=0
+        plot_args['vmax']=1
+        ax[0].imshow(nodule,**plot_args)
+        
+    plot_args['vmin']=0
+    plot_args['vmax']=1
     ax[1].imshow(mask,**plot_args)
     plt.show()
 

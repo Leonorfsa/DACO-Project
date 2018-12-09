@@ -18,7 +18,7 @@ np.random.seed(0) # To avoid changes in random choice
 # LOAD DATA
 #_____________________________________  
 
-images_indexes=[0,10,15] # Imagens que vamos abrir
+images_indexes=[0,10,15] # Images we will be using
 
 curr_path = os.getcwd() #find the current working directory
 
@@ -40,7 +40,8 @@ for n in images_indexes:
     flat_mask=Functions.getMiddleSlice(mask)
     Functions.show2DImages(flat_nodule, flat_mask)
     
-    #utilizar 7 sigmas como referido no paper com 0.5 de step
+#%% ===== Hessian Matrix ====
+    # We will be using 7 sigmas with 0.5 step, as seen on: * por o nome do paper aqui *
     sigmas = [0.5,1.0,1.5,2.0,2.5,3.0,3.5]
     eigValues = []
     h_elem_aux = []
@@ -52,58 +53,58 @@ for n in images_indexes:
 
     for s in sigmas:
         #já não é preciso fazer o filtro gaussiano porque esta função faz 
-        #para os vários sigmas usados vamos guardar apenas o tuplo com os maiores valores de hrr, hrc, hcc
+        # For all the sigmas used, we will keep only the tuple with the biggest values for hrr, hrc and hcc
         (Hrr, Hrc, Hcc) = hessian_matrix(flat_nodule, sigma = s, order='rc')
         h_elem_aux.append((Hrr, Hrc, Hcc))
         
     for i in range(len(h_elem_aux)-1):    
         h_elem_max = np.maximum(h_elem_aux[i],h_elem_aux[i+1])
         
-    Hxx=Hyy=None
     eigValues = Functions.hessian_matrix_eigvals(h_elem_max)
-    #fazer o plot para o primeiro valor e segundo valor de eig values de cada pixel 
-    Functions.show2DImages(eigValues[0],flat_nodule)
-    Functions.show2DImages(eigValues[1],flat_nodule)
+    
+    Functions.show2DImages(eigValues[0],flat_nodule,1)
+    Functions.show2DImages(eigValues[1],flat_nodule,1)
         
+#%% Shape Index
     shapeind0_aux = []
     shapeind1_aux = []
-    #calcular shape index
+    
     for s in sigmas:
         shapeind0_aux.append(shape_index(eigValues[0],s))
         shapeind1_aux.append(shape_index(eigValues[1],s))
-    
-    #shape index FINAIS
-    #extrair o maiores shape index resultantes da aplicação dos diferentes sigmas
+    # Extract the biggest shape index resulting from the different sigmas
     for i in range(len(shapeind0_aux)-1):
         shapeind0 = np.maximum(shapeind0_aux[i],shapeind0_aux[i+1])    
         shapeind1 = np.maximum(shapeind1_aux[i],shapeind1_aux[i+1])
    
-    #calcular curvedness
+#%% Curvedness
     cv = []
     for i in range(eigValues.shape[1]):
         for j in range(eigValues.shape[2]):
             cv.append(math.sqrt((math.pow(eigValues[0][i][j],2)+(math.pow(eigValues[1][i][j],2)))))
    
-    
-    #To make sure we have the same number of pixels for nodule and background
-    nodule,flat_mask=Functions.sample(flat_nodule,flat_mask)
-    Functions.show2DImages(flat_nodule, nodule)
+#%% Sampling
+    #To make sure we have the same number of pixels for nodule and background to train the classifier
+    sampled_nodule,sampled_mask=Functions.sample(flat_nodule,flat_mask)
+    Functions.show2DImages(flat_nodule, sampled_nodule)
     
     #totalGauss.append(gaussImage)
     
+    #Useful for texture classification:
     #texture = int(ground_truth[ground_truth['Filename']==nodule_names[n]]['texture'])
     
-    # Guided Filtering 
-    p=gaussImage
+#%% Guided Filtering --- AINDA NÃO FUNCIONA, OU MELHOR, FUNCIONA MAS FICA COM VALORES ESTRANHOS E POR ISSO
+#                        QUANDO PASSA PARA FEATURE EXTRACTION NÃO É RECONHECIDO 
+    p=flat_nodule
     r=16
     eps=0.01
-    q=np.zeros(gaussImage.shape)
-    q=guidedFilt(gaussImage,p,r,eps)
-    I_enhanced=(gaussImage-q)*5+q
+    q=np.zeros(flat_nodule.shape)
+    q=guidedFilt(flat_nodule,p,r,eps)
+    I_enhanced=(flat_nodule-q)*5+q
     Functions.show2DImages(q,I_enhanced)
         
-    #_____________________________________
-    # FEATURE EXTRACTION
+    #%%_____________________________________
+    #         FEATURE EXTRACTION
     #_______________________________________
     #collect intensity and local entropy
     
@@ -122,17 +123,14 @@ total_features = StandardScaler().fit_transform(total_features) # Para ter a cer
 X_train, X_val, y_train, y_val = train_test_split(total_features, total_labels, test_size=0.3)
 
 
-# CLASSIFICADORES
-# _______________
+#%%_________________
+#   CLASSIFICADORES
+# __________________
 # K-Neighbors
 n_neighbors=5
 knn=Functions.KNeighbors(n_neighbors, X_train, y_train)
 print(knn.score(X_train, y_train))
 print(knn.score(X_val, y_val))
-
-
-
-
 
 
 
