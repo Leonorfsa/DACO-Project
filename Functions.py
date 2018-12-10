@@ -12,11 +12,24 @@ from sklearn.model_selection import train_test_split
 from sklearn import svm
 from sklearn.neighbors import KNeighborsClassifier
 from itertools import combinations_with_replacement
-<<<<<<< HEAD
-=======
-from skimage.feature import hessian_matrix, hessian_matrix_eigvals
->>>>>>> d6f8378427db43f01203a4f472ff5d8a49768ba7
+from skimage.feature import hessian_matrix#, hessian_matrix_eigvals
 from warnings import warn
+#%% List of functions: 
+#   - find extension 
+#   - get middle slice
+#   - hessian matrix eigvals: used on eigenValues (remove if skimage.feature.hessian_matrix_eigvals works)
+#   - _image_orthogonal_matrix22_eigvals: used on hessian_matrix_eigvals (remove if removed)
+#   - _hessian_matrix_image: same as previous
+#   - eigenValues: returns hessian matrix eigenValues
+#   - shapeindex
+#   - curvedness
+#   - show2DImages
+#   - sample / sampling2: returns sampled_labels, sampled_features  
+#   - KNeighbors
+#   - confusionMatrixCalculator: returns TP, TN, FP, FN
+
+
+
 
 #_____________________________________
 # FIND EXTENSION DIRECTORY
@@ -44,8 +57,7 @@ def getMiddleSlice(volume):
     sh = volume.shape
     return volume[...,np.int(sh[-1]/2)]    
 
-
-<<<<<<< HEAD
+# Used on eigenValues
 def hessian_matrix_eigvals(H_elems, Hxy=None, Hyy=None, Hxx=None):
     """Compute Eigenvalues of Hessian matrix.
     Parameters
@@ -95,6 +107,7 @@ def hessian_matrix_eigvals(H_elems, Hxy=None, Hyy=None, Hxx=None):
         eigvals = np.transpose(eigvals, (eigvals.ndim - 1,) + leading_axes)
     return eigvals
 
+# Used on hessian_matrix_eigvals
 def _image_orthogonal_matrix22_eigvals(M00, M01, M11):
     l1 = (M00 + M11) / 2 + np.sqrt(4 * M01 ** 2 + (M00 - M11) ** 2) / 2
     l2 = (M00 + M11) / 2 - np.sqrt(4 * M01 ** 2 + (M00 - M11) ** 2) / 2
@@ -114,27 +127,7 @@ def _hessian_matrix_image(H_elems):
         An array of shape ``(M, N[, ...], image.ndim, image.ndim)``,
         containing the Hessian matrix corresponding to each coordinate.
     """
-=======
-def _image_orthogonal_matrix22_eigvals(M00, M01, M11):
-    l1 = (M00 + M11) / 2 + np.sqrt(4 * M01 ** 2 + (M00 - M11) ** 2) / 2
-    l2 = (M00 + M11) / 2 - np.sqrt(4 * M01 ** 2 + (M00 - M11) ** 2) / 2
-    return l1, l2
 
-
-def _hessian_matrix_image(H_elems):
-    """Convert the upper-diagonal elements of the Hessian matrix to a matrix.
-    Parameters
-    ----------
-    H_elems : list of array
-        The upper-diagonal elements of the Hessian matrix, as returned by
-        `hessian_matrix`.
-    Returns
-    -------
-    hessian_image : array
-        An array of shape ``(M, N[, ...], image.ndim, image.ndim)``,
-        containing the Hessian matrix corresponding to each coordinate.
-    """
->>>>>>> d6f8378427db43f01203a4f472ff5d8a49768ba7
     image = H_elems[0]
     hessian_image = np.zeros(image.shape + (image.ndim, image.ndim))
     for idx, (row, col) in \
@@ -143,10 +136,8 @@ def _hessian_matrix_image(H_elems):
         hessian_image[..., col, row] = H_elems[idx]
     return hessian_image
 
-<<<<<<< HEAD
-=======
 
-def eigValues(sigmas, flat_nodule):
+def eigenValues(sigmas, flat_nodule):
     #já não é preciso fazer o filtro gaussiano porque esta função faz 
     #(Hrr, Hrc, Hcc) = hessian_matrix(flat_nodule, sigma=sigma, order='rc')
     #eigValues = hessian_matrix_eigvals((Hrr, Hrc, Hcc))
@@ -176,7 +167,6 @@ def curvedness(eigValues):
         for j in range(eigValues.shape[2]):
             cv.append(math.sqrt((math.pow(eigValues[0][i][j],2)+(math.pow(eigValues[1][i][j],2)))))
     return cv
->>>>>>> d6f8378427db43f01203a4f472ff5d8a49768ba7
 
 #_____________________________________
 # SHOW IMAGES
@@ -222,9 +212,11 @@ def sample(nodule,mask):
 
 
 def sampling2(total_features,total_labels, number_pixels_each_label):
-    #This functions takes the matrix containing all features (in which each line corresponds to a pixel in the original
-    #image) and the array containing all labels and samples full lines, assuring the number of nodule and non-nodule
-    #pixels is the same.The quantity of pixels sampled for each label is defined as an inpt
+    #This functions takes the matrix containing all features (in which each 
+    # line corresponds to a pixel in the original image) and the array 
+    # containing all labels and samples full lines, assuring the number of 
+    # nodule and non-nodule pixels is the same.The quantity of pixels sampled 
+    # for each label is defined as an input
     #Returns: a matrix of the sampled features and an array of the according labels
     
     #These variables are created as lists to make append easier (Later will be converted to arrays)
@@ -252,7 +244,7 @@ def sampling2(total_features,total_labels, number_pixels_each_label):
     #Conversion back to arrays
     sampled_labels=np.asarray(sampled_labels)
     sampled_features = np.vstack(sampled_features)
-    return sampled_labels,sampled_features       
+    return sampled_features, sampled_labels
 
 #_____________________________________
 # K-NEIGHBORS
@@ -275,8 +267,6 @@ gamma = 1 # SVM RBF radius
 # PREORMANCE EVALUATING
 #_______________________________________
 
-<<<<<<< HEAD
-=======
 def confusionMatrixCalculator(prediction,GT):
     TP=0
     TN=0
@@ -294,6 +284,5 @@ def confusionMatrixCalculator(prediction,GT):
             else:
                 FN+=1
         return TP, TN, FP, FN
->>>>>>> d6f8378427db43f01203a4f472ff5d8a49768ba7
-    
+
     
