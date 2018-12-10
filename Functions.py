@@ -12,6 +12,10 @@ from sklearn.model_selection import train_test_split
 from sklearn import svm
 from sklearn.neighbors import KNeighborsClassifier
 from itertools import combinations_with_replacement
+<<<<<<< HEAD
+=======
+from skimage.feature import hessian_matrix, hessian_matrix_eigvals
+>>>>>>> d6f8378427db43f01203a4f472ff5d8a49768ba7
 from warnings import warn
 
 #_____________________________________
@@ -41,6 +45,7 @@ def getMiddleSlice(volume):
     return volume[...,np.int(sh[-1]/2)]    
 
 
+<<<<<<< HEAD
 def hessian_matrix_eigvals(H_elems, Hxy=None, Hyy=None, Hxx=None):
     """Compute Eigenvalues of Hessian matrix.
     Parameters
@@ -109,6 +114,27 @@ def _hessian_matrix_image(H_elems):
         An array of shape ``(M, N[, ...], image.ndim, image.ndim)``,
         containing the Hessian matrix corresponding to each coordinate.
     """
+=======
+def _image_orthogonal_matrix22_eigvals(M00, M01, M11):
+    l1 = (M00 + M11) / 2 + np.sqrt(4 * M01 ** 2 + (M00 - M11) ** 2) / 2
+    l2 = (M00 + M11) / 2 - np.sqrt(4 * M01 ** 2 + (M00 - M11) ** 2) / 2
+    return l1, l2
+
+
+def _hessian_matrix_image(H_elems):
+    """Convert the upper-diagonal elements of the Hessian matrix to a matrix.
+    Parameters
+    ----------
+    H_elems : list of array
+        The upper-diagonal elements of the Hessian matrix, as returned by
+        `hessian_matrix`.
+    Returns
+    -------
+    hessian_image : array
+        An array of shape ``(M, N[, ...], image.ndim, image.ndim)``,
+        containing the Hessian matrix corresponding to each coordinate.
+    """
+>>>>>>> d6f8378427db43f01203a4f472ff5d8a49768ba7
     image = H_elems[0]
     hessian_image = np.zeros(image.shape + (image.ndim, image.ndim))
     for idx, (row, col) in \
@@ -117,6 +143,40 @@ def _hessian_matrix_image(H_elems):
         hessian_image[..., col, row] = H_elems[idx]
     return hessian_image
 
+<<<<<<< HEAD
+=======
+
+def eigValues(sigmas, flat_nodule):
+    #já não é preciso fazer o filtro gaussiano porque esta função faz 
+    #(Hrr, Hrc, Hcc) = hessian_matrix(flat_nodule, sigma=sigma, order='rc')
+    #eigValues = hessian_matrix_eigvals((Hrr, Hrc, Hcc))
+    eigValues = []
+    h_elem_aux = []
+    h_elem_max = ()
+    
+    for s in sigmas:
+        #já não é preciso fazer o filtro gaussiano porque esta função faz 
+        #para os vários sigmas usados vamos guardar apenas o tuplo com os maiores valores de hrr, hrc, hcc
+        (Hrr, Hrc, Hcc) = hessian_matrix(flat_nodule, sigma = s, order='rc')
+        h_elem_aux.append((Hrr, Hrc, Hcc))
+        
+    for i in range(len(h_elem_aux)-1):    
+        h_elem_max = np.maximum(h_elem_aux[i],h_elem_aux[i+1])
+        
+    eigValues = hessian_matrix_eigvals(h_elem_max) 
+    return eigValues
+
+def shapeindex(eigValues):
+    shapeindex = (2/math.pi)*np.arctan((eigValues[1]+eigValues[0])/(eigValues[1])-eigValues[0])
+    return shapeindex
+
+def curvedness(eigValues):
+    cv = []
+    for i in range(eigValues.shape[1]):
+        for j in range(eigValues.shape[2]):
+            cv.append(math.sqrt((math.pow(eigValues[0][i][j],2)+(math.pow(eigValues[1][i][j],2)))))
+    return cv
+>>>>>>> d6f8378427db43f01203a4f472ff5d8a49768ba7
 
 #_____________________________________
 # SHOW IMAGES
@@ -215,6 +275,8 @@ gamma = 1 # SVM RBF radius
 # PREORMANCE EVALUATING
 #_______________________________________
 
+<<<<<<< HEAD
+=======
 def confusionMatrixCalculator(prediction,GT):
     TP=0
     TN=0
@@ -232,5 +294,6 @@ def confusionMatrixCalculator(prediction,GT):
             else:
                 FN+=1
         return TP, TN, FP, FN
+>>>>>>> d6f8378427db43f01203a4f472ff5d8a49768ba7
     
     
