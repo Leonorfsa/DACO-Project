@@ -10,6 +10,7 @@ from skimage.morphology import disk
 from sklearn.model_selection import train_test_split
 import Functions 
 import PreProcessing
+from guidedFilter2 import guidedFilt
 from skimage.feature import hessian_matrix, hessian_matrix_eigvals
 from matplotlib import pyplot as plt
 plt.close('all')
@@ -60,10 +61,10 @@ for n in images_indexes:
    #=======FEATURE EXTRACTION============
     
     #Collect intensity (Feature 1)
-    intensity = np.ravel(gaussImage)
+    intensity = np.ravel(gaussImage) # Feature
     
     #Collect local entropy (Feature 2)
-    entrop = np.ravel(entropy(gaussImage,disk(5)))
+    entrop = np.ravel(entropy(gaussImage,disk(5))) # Feature
     
     
     #Hessian Matrix
@@ -82,8 +83,10 @@ for n in images_indexes:
     for i in range(len(h_elem_aux)-1):    
         h_elem_max = np.maximum(h_elem_aux[i],h_elem_aux[i+1])
         
-    eigValues = Functions.hessian_matrix_eigvals(h_elem_max) #É ESTEEEEE!!!!!!!
+    eigValues = Functions.hessian_matrix_eigvals(h_elem_max) # Feature
     
+    eigVal0=np.ravel(eigValues[0]) # Feature
+    eigVal1=np.ravel(eigValues[1]) # Feature
     #Functions.show2DImages(eigValues[0],flat_nodule,1)
     #Functions.show2DImages(eigValues[1],flat_nodule,1)
     
@@ -100,15 +103,15 @@ for n in images_indexes:
         shapeind0 = np.maximum(shapeind0_aux[i],shapeind0_aux[i+1])  
         shapeind1 = np.maximum(shapeind1_aux[i],shapeind1_aux[i+1]) 
     
-    shapeind0=np.ravel(shapeind0)
-    shapeind1=np.ravel(shapeind1)
+    shapeind0=np.ravel(shapeind0) # Feature
+    shapeind1=np.ravel(shapeind1) # Feature
     
     #Curvedness
     cv = []
     for i in range(eigValues.shape[1]):
         for j in range(eigValues.shape[2]):
-            cv.append(math.sqrt((math.pow(eigValues[0][i][j],2)+(math.pow(eigValues[1][i][j],2)))))
-    
+            cv.append([math.sqrt((math.pow(eigValues[0][i][j],2)+(math.pow(eigValues[1][i][j],2))))]) # Feature
+            
     #Other Features... 
 
     
@@ -117,7 +120,7 @@ for n in images_indexes:
     labels.append(label)
     
     #Concatenate all features for all Training Images in an ndarry
-    features.append([intensity,entrop,shapeind0,shapeind1])
+    features.append([intensity,entrop,eigVal0,eigVal1,shapeind0,shapeind1])
     total_labels=np.hstack(labels)
     total_features = np.hstack(features).T
     
@@ -140,7 +143,7 @@ knn=Functions.KNeighbors(n_neighbors, sampled_features, sampled_labels) #Trainin
 
 
 
-#%% NODULE SEGMENTATION (TESTING)
+##%% NODULE SEGMENTATION (TESTING)
 
 features = []
 labels = []
