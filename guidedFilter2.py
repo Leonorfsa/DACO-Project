@@ -17,17 +17,17 @@ def boxfilter(imSrc,r):
     imCum=np.cumsum(imSrc,0)
     
     # Difference over Y axis
-    imDst[range(0, r+1),...]=imCum[(range(r, 2*r+1)),...]
-    imDst[range(r+1,hei-r),...]=imCum[(range(2*r+1,hei)),...]-imCum[(range(1,hei-2*r)),...]
-    imDst[(range(hei-r,hei)),...]=ml.repmat(imCum[hei-1,...], r,1)-imCum[(range(hei-2*r,hei-r)),...]
+    imDst[0:r+1,...]=imCum[r: 2*r+1,...]
+    imDst[r+1:hei-r,...]=imCum[2*r+1:hei,...]-imCum[1:hei-2*r,...]
+    imDst[hei-r:hei,...]=imCum[hei-1,...]-imCum[hei-2*r:hei-r,...]
     
     # Cumulative sum over X axis
     imCum=np.cumsum(imDst,1)
     
     # Difference over X axis
-    imDst[...,range(0, r+1)]=imCum[...,(range(r, 2*r+1))]
-    imDst[...,range(r+1,wid-r)]=imCum[:,(range(2*r+1,wid))]-imCum[...,(range(1,wid-2*r))]
-    imDst[...,(range(wid-r,wid))]=ml.repmat(imCum[wid-1,...], r,1).T-imCum[...,(range(wid-2*r,wid-r))]
+    imDst[...,0:r+1]=imCum[...,r, 2*r+1]
+    imDst[...,r+1,wid-r]=imCum[:,2*r+1,wid]-imCum[...,1,wid-2*r]
+    imDst[...,wid-r,wid]=imCum[...,wid-1]-imCum[...,wid-2*r,wid-r]
     
     return imDst
     

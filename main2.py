@@ -134,7 +134,6 @@ print(knn.score(sampled_features,sampled_labels))
 #Other Classificators...
 
 
-
 ##%% NODULE SEGMENTATION (TESTING)
 
 features = []
