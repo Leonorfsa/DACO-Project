@@ -26,7 +26,7 @@ np.random.seed(0) # To avoid changes in random choice
 #%% LOAD DATA  
 
 images_indexes=list(range(100)) # Imagens que vamos abrir
-val_images_indexes=5 #Imagens nas quais vamos validar
+val_images_indexes=132 #Imagens nas quais vamos validar
 #Estas duas linhas depois vão ser substituidas por train_test_split()
 
 curr_path = os.getcwd() #find the current working directory
@@ -81,27 +81,15 @@ for n in images_indexes:
     
     #Hessian Matrix
     # We will be using 7 sigmas with 0.5 step, as seen on: * por o nome do paper aqui *
-    sigmas = [0.5,1.0,1.5,2.0,2.5,3.0,3.5]
+    sigmas = [0.5,0.60,0.70,0.8,0.9,1,1.2,2,4,5]
+    shapeind, cv, eigValues=Functions.eigenValuesShapeIndexCurveness(sigmas, single_image)
     
-    eigValues=Functions.eigenValues(sigmas, single_image)
     eigVal0=np.ravel(eigValues[0]) # Feature 3
     eigVal1=np.ravel(eigValues[1]) # Feature 4
+    shapeind=np.ravel(shapeind) #Feature 5
+    cv=np.ravel(cv) #Feature 6
     
-    #Functions.show2DImages(eigValues[0],flat_nodule,1)
-    #Functions.show2DImages(eigValues[1],flat_nodule,1)
     
-    
-    #Shape Index
-    shapeind0_aux = []
-    shapeind1_aux = []
-    
-    shapeind=Functions.shapeindex(eigValues)
-    
-    shapeind=np.ravel(shapeind)
-    
-    #Curvedness
-    cv = Functions.curvedness(eigValues)
-    cv=np.array(cv)
     #Other Features... 
 
     
@@ -120,7 +108,7 @@ scaler = StandardScaler().fit(total_features)
 total_features=scaler.transform(total_features)
 
 #Sampling 
-sampled_features,sampled_labels=Functions.sampling2(total_features,total_labels,70000) #To make sure we have the same number of nodule and non-nodule pixels for Training
+sampled_features,sampled_labels=Functions.sampling2(total_features,total_labels,50000) #To make sure we have the same number of nodule and non-nodule pixels for Training
 
 
 
@@ -131,13 +119,14 @@ sampled_features,sampled_labels=Functions.sampling2(total_features,total_labels,
 n_neighbors=5
 knn=Functions.KNeighbors(n_neighbors, sampled_features, sampled_labels) #Training K-neighbours
 print(knn.score(sampled_features,sampled_labels))
-#Other Classificators...
+
+#SVM
 
 
-##%% NODULE SEGMENTATION (TESTING)
+#%% NODULE SEGMENTATION (TESTING)
 
-features = []
-labels = []
+label_val=[]
+features_val = []
 total_features_val=[]
 
 val_nodule = np.load(nodules[val_images_indexes])
@@ -163,48 +152,25 @@ entrop = np.ravel(entropy(gaussImage,disk(5)))
 
 #Hessian Matrix
 # We will be using 7 sigmas with 0.5 step, as seen on: * por o nome do paper aqui *
-sigmas = [0.5,1.0,1.5,2.0,2.5,3.0,3.5]
-eigValues = []
-h_elem_aux = []
-h_elem_max = ()
+sigmas = [0.5,0.60,0.70,0.8,0.9,1,1.2,2,4,5]
+shapeind, cv, eigValues=Functions.eigenValuesShapeIndexCurveness(sigmas, single_image)
 
-for s in sigmas:
-    #já não é preciso fazer o filtro gaussiano porque esta função faz 
-    # For all the sigmas used, we will keep only the tuple with the biggest values for hrr, hrc and hcc
-    (Hrr, Hrc, Hcc) = hessian_matrix(val_flat_nodule, sigma = s, order='rc')
-    h_elem_aux.append((Hrr, Hrc, Hcc))
-    
-for i in range(len(h_elem_aux)-1):    
-    h_elem_max = np.maximum(h_elem_aux[i],h_elem_aux[i+1])
-    
-eigValues = Functions.hessian_matrix_eigvals(h_elem_max) #É ESTEEEEE!!!!!!!
+eigVal0=np.ravel(eigValues[0]) # Feature 3
+eigVal1=np.ravel(eigValues[1]) # Feature 4
+shapeind=np.ravel(shapeind) #Feature 5
+cv=np.ravel(cv) #Feature 6
 
-#Functions.show2DImages(eigValues[0],flat_nodule,1)
-#Functions.show2DImages(eigValues[1],flat_nodule,1)
-
-
-#Shape Index
-shapeind1_aux = []
-
-shapeind1=Functions.shapeindex(eigValues)
-shapeind1=np.ravel(shapeind1)
-
-#Curvedness
-cv = []
-for i in range(eigValues.shape[1]):
-    for j in range(eigValues.shape[2]):
-        cv.append(math.sqrt((math.pow(eigValues[0][i][j],2)+(math.pow(eigValues[1][i][j],2)))))
-
-#Other Features...  
+#Other Features...
+  
 #Convert labeled image into a one dimensional array
-label=np.ravel(flat_mask)
-labels.append(label)
-features.append([intensity,entrop,eigVal0, eigVal1,shapeind1,cv])
-total_labels=np.hstack(labels)
-total_features_val = np.hstack(features).T
+features_val.append([intensity,entrop,eigVal0, eigVal1,shapeind,cv])
+total_features_val = np.hstack(features_val).T
+
 
 #Data Standerization (To ensure mean=0 and std=1)
 total_features_val = scaler.transform(total_features_val)# - Para o teste, apenas aplicamos o transform que criámos com o train
+
+#Classification
 prediction=knn.predict(total_features_val)
     
 #%% PREFORMANCE EVALUATION
@@ -212,7 +178,7 @@ prediction=knn.predict(total_features_val)
 prediction_image=np.reshape(prediction,[51,51])
 Functions.show2DImages(prediction_image, val_flat_mask)
 
-TN, FP, FN, TP =confusion_matrix(label, prediction).ravel()
+TN, FP, FN, TP =confusion_matrix(mask_array, prediction).ravel()
 
 Acc=(TP+TN)/(TP+TN+FP+FN)            
 Sens_men=TP/(TP+FN)

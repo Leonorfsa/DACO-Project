@@ -137,52 +137,53 @@ def _hessian_matrix_image(H_elems):
     return hessian_image
 
 
-def eigenValues(sigmas, flat_nodule):
+def eigenValuesShapeIndexCurveness(sigmas, flat_nodule):
     #já não é preciso fazer o filtro gaussiano porque esta função faz 
-    #(Hrr, Hrc, Hcc) = hessian_matrix(flat_nodule, sigma=sigma, order='rc')
-    #eigValues = hessian_matrix_eigvals((Hrr, Hrc, Hcc))
-    eigValues = []
-    h_elem_aux = []
-    h_elem_max = ()
     
-    for s in sigmas:
+    shapeindex = np.zeros((51,51,len(sigmas)))
+    cv = np.zeros((51,51,len(sigmas)))
+    eigValues = []
+    
+    for (i,s) in enumerate(sigmas):
         #já não é preciso fazer o filtro gaussiano porque esta função faz 
         #para os vários sigmas usados vamos guardar apenas o tuplo com os maiores valores de hrr, hrc, hcc
-        (Hrr, Hrc, Hcc) = hessian_matrix(flat_nodule, sigma = s, order='rc')
-        h_elem_aux.append((Hrr, Hrc, Hcc))
+        h_elem = hessian_matrix(flat_nodule, sigma = s, order='rc')
+        eigValues = hessian_matrix_eigvals(h_elem)
+        shapeindex[:,:,i] = ((2/math.pi)*np.arctan((eigValues[0]+eigValues[1])/(eigValues[0])-eigValues[1]))
+        aux = np.sqrt((np.power(eigValues[1],2)+(np.power(eigValues[0],2))))
+        cv[:,:,i] = aux
         
-    for i in range(len(h_elem_aux)-1):    
-        h_elem_max = np.maximum(h_elem_aux[i],h_elem_aux[i+1])
-        
-    eigValues = hessian_matrix_eigvals(h_elem_max) 
-    return eigValues
-
-def shapeindex(eigValues):
-    shapeindex = (2/math.pi)*np.arctan((eigValues[1]+eigValues[0])/(eigValues[1])-eigValues[0])
-    return shapeindex
-
-def curvedness(eigValues):
-    cv = []
-    for i in range(eigValues.shape[1]):
-        for j in range(eigValues.shape[2]):
-            cv.append(math.sqrt((math.pow(eigValues[0][i][j],2)+(math.pow(eigValues[1][i][j],2)))))
-    return cv
+    cv = np.max(cv, axis = -1)
+    shapeindex = np.max(shapeindex, axis = -1) 
+ 
+    return shapeindex,cv,eigValues
 
 #_____________________________________
 # SHOW IMAGES
 #_____________________________________
 
-def show2DImages(nodule, mask):
+def show2DImages(nodule, mask, addapt=0):
     # plot_args defines plot properties in a single variable
     plot_args={}
-    plot_args['vmin']=0
-    plot_args['vmax']=1
     plot_args['cmap']='gray'
     fig,ax = plt.subplots(1,2)
     plt.title('Middle slice')
-    ax[0].imshow(nodule,**plot_args)
+    if addapt==1:
+        plot_args['vmin']=np.min(nodule)
+        plot_args['vmax']=np.max(nodule)
+        ax[0].imshow(nodule,**plot_args)
+
+    else:
+        plot_args['vmin']=0
+        plot_args['vmax']=1
+        ax[0].imshow(nodule,**plot_args)
+        
+    plot_args['vmin']=0
+    plot_args['vmax']=1
     ax[1].imshow(mask,**plot_args)
     plt.show()
+    
+    return
 
 
 #_____________________________________
@@ -267,22 +268,5 @@ gamma = 1 # SVM RBF radius
 # PREORMANCE EVALUATING
 #_______________________________________
 
-def confusionMatrixCalculator(prediction,GT):
-    TP=0
-    TN=0
-    FP=0
-    FN=0
-    for i in range(len(prediction)):
-        if (prediction[i]==GT[i]):
-            if (prediction[i]==1):
-                TP+=1
-            else:
-                TN+=1
-        else:
-            if (prediction[i]==1):
-                FP+=1
-            else:
-                FN+=1
-        return TP, TN, FP, FN
 
     
