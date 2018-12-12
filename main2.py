@@ -100,7 +100,7 @@ for n in images_indexes:
     #Concatenate all features for all Training Images in an ndarry
     features.append([intensity,entrop,eigVal0, eigVal1,shapeind,cv])
     total_labels=np.hstack(labels)
-    total_features = np.hstack(features).T
+    total_features = np.hstack(features)
     
 #Data Standerization (To ensure mean=0 and std=1)
 
