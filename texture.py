@@ -2,28 +2,13 @@
 
 import numpy as np
 from matplotlib import pyplot as plt
-import math
 import os
 import pandas as pd
 import Functions 
 import PreProcessing
-import gaborfilter as gbf
-import texture_features
-
-from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import classification_report
-from sklearn.metrics import auc as areaUnderCurve
+import texture_features as feat
+from sklearn.linear_model import LogisticRegression
 from sklearn import svm
-
-from skimage.feature import shape_index
-from skimage.filters.rank import entropy
-from skimage.morphology import disk
-from skimage.feature import hessian_matrix, hessian_matrix_eigvals
-from skimage.feature import greycomatrix, greycoprops
-from skimage import filters
-from skimage.measure import regionprops
 
 
 plt.close('all')
@@ -98,30 +83,32 @@ for n in images_indexes:
     #%% ============Features=============
     
      # Feature 1
-    intensity = np.mean(np.ravel(gauss_image))  # Ravel põe a matriz sob a forma de uma só linha
+    intensity = np.mean(np.ravel(single_image))  # Ravel põe a matriz sob a forma de uma só linha
                                         # Append acrescenta esses elementos 
+     # Feature 2
+    std_dev=np.std(np.ravel(single_image))
     
-    # Feature 2
-    gabor_mean, gabor_dev=gbf.gaborFilter(gauss_image)
-    gabor0=np.float64(gabor_mean[0])
-    gabor1=np.float64(gabor_mean[1])
-    gabor2=np.float64(gabor_mean[2])
-    gabor3=np.float64(gabor_mean[3])
-    gabor4=np.float64(gabor_mean[4])
-    gabor5=np.float64(gabor_mean[5])
-    gabor6=np.float64(gabor_mean[6])
-    gabor7=np.float64(gabor_mean[7])
-    gabor8=np.float64(gabor_mean[8])
-    gabor9=np.float64(gabor_mean[9])
-    gabor10=np.float64(gabor_mean[10])
-    gabor11=np.float64(gabor_mean[11])
-    gabor12=np.float64(gabor_mean[12])
-    gabor13=np.float64(gabor_mean[13])
-    gabor14=np.float64(gabor_mean[14])
-    gabor15=np.float64(gabor_mean[15])
+    # Feature 3 to 34
+    gabor_mean, gabor_dev=feat.gaborFilter(single_image)
+    gabor_mean=np.dtype(float).type(gabor_mean)
+    gabor0=gabor_mean[0]
+    gabor1=gabor_mean[1]
+    gabor2=gabor_mean[2]
+    gabor3=gabor_mean[3]
+    gabor4=gabor_mean[4]
+    gabor5=gabor_mean[5]
+    gabor6=gabor_mean[6]
+    gabor7=gabor_mean[7]
+    gabor8=gabor_mean[8]
+    gabor9=gabor_mean[9]
+    gabor10=gabor_mean[10]
+    gabor11=gabor_mean[11]
+    gabor12=gabor_mean[12]
+    gabor13=gabor_mean[13]
+    gabor14=gabor_mean[14]
+    gabor15=gabor_mean[15]
     
-    # Feature 3
-    gabor_dev=np.float64(gabor_dev)
+    gabor_dev=np.dtype(float).type(gabor_dev)
     gabor_dev0=gabor_dev[0]
     gabor_dev1=gabor_dev[1]
     gabor_dev2=gabor_dev[2]
@@ -139,43 +126,63 @@ for n in images_indexes:
     gabor_dev14=gabor_dev[14]
     gabor_dev15=gabor_dev[15]
     
-    # Feature 4 
-    int_gaus=x = np.uint8(255*(gauss_image))
-    hu_moments=np.max(texture_features.fd_hu_moments(gauss_image))
-    haralick=np.max(texture_features.fd_haralick(int_gaus))
+    # Feature 35, 36
+    int_image=x = np.uint8(255*(single_image)) # To obtain a 255 uint8 image
+    hu_moments=feat.fd_hu_moments(single_image)
+    hu_moments_max=np.max(hu_moments)
+    hu_moments_mean=np.mean(hu_moments)
     
+    # Feature 37, 38
+    haralick=feat.fd_haralick(int_image)
+    haralick_max=np.max(haralick)
+    haralick_mean=np.mean(haralick)
+    
+    # Feature 39 to 44
+    contrast, dissimilarity, homogeneity, energy, correlation, ASM =feat.GLCM_features(int_image)
     
     #Concatenate all features for all Training Images in an ndarry
-    features.append([intensity, gabor_dev0,gabor_dev1,gabor_dev2,gabor_dev3,gabor_dev4,gabor_dev5,
-                     gabor_dev6,gabor_dev7,gabor_dev8,gabor_dev9,gabor_dev10,gabor_dev11,gabor_dev12,gabor_dev13,
-                     gabor_dev14,gabor_dev15,gabor0,gabor1,gabor2,gabor3,gabor4,gabor5,gabor6,gabor7,gabor8,
-                     gabor9,gabor10,gabor11,gabor12,gabor13,gabor14,gabor15,hu_moments,haralick])
-    
-    #total_features = np.hstack(features).T
-    total_texture=np.hstack(new_texture).T
-    #Data Standerization (To ensure mean=0 and std=1)
+    features.append([intensity,std_dev, gabor_dev0,gabor_dev1,gabor_dev2,gabor_dev3,gabor_dev4,gabor_dev5,
+                     gabor_dev6,gabor_dev7,gabor_dev8,gabor_dev9,gabor_dev10,gabor_dev11,gabor_dev12,gabor_dev13
+                     ,gabor_dev14,gabor_dev15,gabor0,gabor1,gabor2,gabor3,gabor4,gabor5,gabor6,gabor7,gabor8,
+                     gabor9,gabor10,gabor11,gabor12,gabor13,gabor14,gabor15,hu_moments_max, hu_moments_mean,haralick_max, haralick_mean
+                     ,contrast, dissimilarity, homogeneity, energy, correlation, ASM])
 
+    total_texture=np.hstack(new_texture).T
+    
+#Data Standerization (To ensure mean=0 and std=1)
 scaler = StandardScaler().fit(features)
 features=scaler.transform(features)
 
 
+#%% Classificators
 
+# SVMs 
 
 # Create the SVC model object
 C = 1.0 # SVM regularization parameter
 svc = svm.SVC(kernel='linear', C=C, decision_function_shape='ovr').fit(features, total_texture)
-print(svc.score(features,total_texture))
+print('Linear SVM score for train: %f',svc.score(features,total_texture))
 
-#f, axarr = plt.subplots(1,2)
-#axarr[0].plot_decision_boundary_iris(total_features, svc, 'Linear SVM')
+f, axarr = plt.subplots(1,3)
+axarr[0].plot_decision_boundary_iris(features, svc, 'Linear SVM')
 
 # Create the SVC model object
 C = 1.0 # SVM regularization parameter
 svc_kernel = svm.SVC(kernel='rbf', C=C, decision_function_shape='ovr').fit(features, total_texture)
-print(svc_kernel.score(features,total_texture))
-#axarr[1].plot_decision_boundary_iris(total_features, svc_kernel, 'SVM with RBF kernel')
+print('RBF SVM score for train: %f',svc_kernel.score(features,total_texture))
+axarr[1].plot_decision_boundary_iris(features, svc_kernel, 'SVM with RBF kernel')
 
 
+
+n_neighbors=5
+knn=Functions.KNeighbors(n_neighbors, features, total_texture) #Training K-neighbours
+print('KNN score for train: %f',knn.score(features,total_texture))
+axarr[2].plot_decision_boundary_iris(features, knn, 'KNN')
+
+
+models = []
+models.append(('LR', LogisticRegression(random_state=9))) # Logistic Regression
+models.append(('KNN', KNeighborsClassifier()))#K-Neighbors
 
 #%% TEXTURE CLASSIFICATION (VALIDATION)
 
@@ -218,29 +225,31 @@ for n in images_indexes_val:
     #%% ============Features=============
     
      # Feature 1
-    intensity = np.mean(np.ravel(gauss_image_val))  # Ravel põe a matriz sob a forma de uma só linha
+    intensity = np.mean(np.ravel(single_image_val))  # Ravel põe a matriz sob a forma de uma só linha
                                         # Append acrescenta esses elementos 
+    std_dev=np.std(np.ravel(single_image_val))
     
     # Feature 2
-    gabor_mean, gabor_dev=gbf.gaborFilter(gauss_image_val)
-    gabor0=np.float64(gabor_mean[0])
-    gabor1=np.float64(gabor_mean[1])
-    gabor2=np.float64(gabor_mean[2])
-    gabor3=np.float64(gabor_mean[3])
-    gabor4=np.float64(gabor_mean[4])
-    gabor5=np.float64(gabor_mean[5])
-    gabor6=np.float64(gabor_mean[6])
-    gabor7=np.float64(gabor_mean[7])
-    gabor8=np.float64(gabor_mean[8])
-    gabor9=np.float64(gabor_mean[9])
-    gabor10=np.float64(gabor_mean[10])
-    gabor11=np.float64(gabor_mean[11])
-    gabor12=np.float64(gabor_mean[12])
-    gabor13=np.float64(gabor_mean[13])
-    gabor14=np.float64(gabor_mean[14])
-    gabor15=np.float64(gabor_mean[15])
+    gabor_mean, gabor_dev=feat.gaborFilter(single_image_val)
+    gabor_mean=np.dtype(float).type(gabor_mean)
+    gabor0=gabor_mean[0]
+    gabor1=gabor_mean[1]
+    gabor2=gabor_mean[2]
+    gabor3=gabor_mean[3]
+    gabor4=gabor_mean[4]
+    gabor5=gabor_mean[5]
+    gabor6=gabor_mean[6]
+    gabor7=gabor_mean[7]
+    gabor8=gabor_mean[8]
+    gabor9=gabor_mean[9]
+    gabor10=gabor_mean[10]
+    gabor11=gabor_mean[11]
+    gabor12=gabor_mean[12]
+    gabor13=gabor_mean[13]
+    gabor14=gabor_mean[14]
+    gabor15=gabor_mean[15]
     
-    gabor_dev=np.float64(gabor_dev)
+    gabor_dev=np.dtype(float).type(gabor_dev)
     gabor_dev0=gabor_dev[0]
     gabor_dev1=gabor_dev[1]
     gabor_dev2=gabor_dev[2]
@@ -259,22 +268,32 @@ for n in images_indexes_val:
     gabor_dev15=gabor_dev[15]
     
     # Feature 4 
-    int_gaus = np.uint8(255*(gauss_image_val))
-    hu_moments=np.max(texture_features.fd_hu_moments(gauss_image_val))
-    haralick=np.max(texture_features.fd_haralick(int_gaus))
+    int_image_val=x = np.uint8(255*(single_image_val)) # To obtain a 255 uint8 image
+    hu_moments=feat.fd_hu_moments(single_image_val)
+    hu_moments_max=np.max(hu_moments)
+    hu_moments_mean=np.mean(hu_moments)
     
-
+    # Feature 5
+    haralick=feat.fd_haralick(int_image_val)
+    haralick_max=np.max(haralick)
+    haralick_mean=np.mean(haralick)
+    
+    # Feature 6 
+    contrast, dissimilarity, homogeneity, energy, correlation, ASM =feat.GLCM_features(int_image_val)
     
     #Concatenate all features for all Training Images in an ndarry
-    features_val.append([intensity, gabor_dev0,gabor_dev1,gabor_dev2,gabor_dev3,gabor_dev4,gabor_dev5,
-                     gabor_dev6,gabor_dev7,gabor_dev8,gabor_dev9,gabor_dev10,gabor_dev11,gabor_dev12,gabor_dev13,
-                     gabor_dev14,gabor_dev15,gabor0,gabor1,gabor2,gabor3,gabor4,gabor5,gabor6,gabor7,gabor8,
-                     gabor9,gabor10,gabor11,gabor12,gabor13,gabor14,gabor15,hu_moments,haralick])
+    features_val.append([intensity,std_dev, gabor_dev0,gabor_dev1,gabor_dev2,gabor_dev3,gabor_dev4,gabor_dev5,
+                     gabor_dev6,gabor_dev7,gabor_dev8,gabor_dev9,gabor_dev10,gabor_dev11,gabor_dev12,gabor_dev13
+                     ,gabor_dev14,gabor_dev15,gabor0,gabor1,gabor2,gabor3,gabor4,gabor5,gabor6,gabor7,gabor8,
+                     gabor9,gabor10,gabor11,gabor12,gabor13,gabor14,gabor15,hu_moments_max, hu_moments_mean,haralick_max, haralick_mean
+                     ,contrast, dissimilarity, homogeneity, energy, correlation, ASM])
     
     #total_features = np.hstack(features).T
     total_texture_val=np.hstack(new_texture_val).T
     #Data Standerization (To ensure mean=0 and std=1)
 
 features_val=scaler.transform(features_val)
-print(svc.score(features_val,total_texture_val))
-print(svc_kernel.score(features_val,total_texture_val))
+print('Linear SVM score for validation: %f',svc.score(features_val,total_texture_val))
+print('RGF SVM score for validation: %f', svc_kernel.score(features_val,total_texture_val))
+print('KNN score for validation: %f', knn.score(features,total_texture))
+

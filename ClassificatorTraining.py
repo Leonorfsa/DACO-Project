@@ -3,12 +3,13 @@
 import numpy as np
 import random
 import Functions
+import Classifiers
 import pickle
 import time
-from FeatureExtraction import amount_images
+from FeatureExtraction import number_images
 from sklearn.svm import SVC
 from sklearn.preprocessing import StandardScaler
-#from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split
 
 total_features=np.load('totalfeatures.npy')
 total_labels=np.load('totallabels.npy')
@@ -22,16 +23,17 @@ np.random.seed(0)
 scaler = StandardScaler().fit(total_features)
 total_features=scaler.transform(total_features)
 
-image_indexes=np.array(range(0,amount_images))
+image_indexes=np.array(range(0,number_images))
 
 #%%TRAIN_TEST_SPLIT NÃO ESTAVA A FUNCIONAR
-train_size=int(input('What is the percentage of the Dataset used for Training (0-100): '))/100
+train_size=70
+            #int(input('What is the percentage of the Dataset used for Training (0-100): '))/100
 start = time.time()
 np.random.shuffle(image_indexes)
 X_train_indexes=image_indexes[:int(len(image_indexes)*train_size)]
-X_val_indexes=image_indexes[int(len(image_indexes)*train_size):]
+X_val_indexes=image_indexes[:int(len(image_indexes)*train_size)]
 
-X_train=np.zeros((1,6))
+X_train=np.zeros((1,int(len(total_features[0]))))
 Y_train=[]
 Train_pixel_index=[]
 for i in X_train_indexes:
@@ -65,15 +67,15 @@ X_val=np.delete(X_val, (0), axis=0)
 
 #%%
 
-#Sampling (To ensure we train we the same number of nodule and non-nodule pixels)
+#Sampling (To ensure we train with the same number of nodule and non-nodule pixels)
 sampled_features,sampled_labels=Functions.sampling2(X_train,Y_train,9000) 
 
 
-#=======CLASSIFICATOR TRAINING============
+#=======CLASSIFIER TRAINING============
  
 #K-Neighbors
 n_neighbors=5
-knn=Functions.KNeighbors(n_neighbors, sampled_features, sampled_labels) #Training K-neighbours
+knn=Classifiers.KNeighbors(n_neighbors, sampled_features, sampled_labels) #Training K-neighbours
 print(knn.score(sampled_features,sampled_labels)) #Porque é que isto não dá 1??
 
 #SVM
