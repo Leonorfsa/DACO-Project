@@ -1,11 +1,4 @@
 ## Pre-processing
-import os
-import pandas as pd
-import numpy as np
-from sklearn.preprocessing import StandardScaler
-from skimage.filters.rank import entropy
-from skimage.morphology import disk
-from sklearn.model_selection import train_test_split
 from skimage.filters import gaussian
 
 

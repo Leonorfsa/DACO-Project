@@ -8,7 +8,9 @@ import Functions
 import PreProcessing
 import texture_features as feat
 from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import StandardScaler
 from sklearn import svm
+from skimage.measure import regionprops
 
 
 plt.close('all')
@@ -85,10 +87,14 @@ for n in images_indexes:
      # Feature 1
     intensity = np.mean(np.ravel(single_image))  # Ravel põe a matriz sob a forma de uma só linha
                                         # Append acrescenta esses elementos 
-     # Feature 2
+    # Features 2 and 3     
+    maxIntensity=np.max(np.ravel(single_image))
+    minIntensity=np.min(np.avel(single_image))
+    
+     # Feature 4
     std_dev=np.std(np.ravel(single_image))
     
-    # Feature 3 to 34
+    # Feature 5 to 36
     gabor_mean, gabor_dev=feat.gaborFilter(single_image)
     gabor_mean=np.dtype(float).type(gabor_mean)
     gabor0=gabor_mean[0]
@@ -126,22 +132,29 @@ for n in images_indexes:
     gabor_dev14=gabor_dev[14]
     gabor_dev15=gabor_dev[15]
     
-    # Feature 35, 36
+    # Feature 37, 38
     int_image=x = np.uint8(255*(single_image)) # To obtain a 255 uint8 image
     hu_moments=feat.fd_hu_moments(single_image)
     hu_moments_max=np.max(hu_moments)
     hu_moments_mean=np.mean(hu_moments)
     
-    # Feature 37, 38
+    # Feature 39, 40
     haralick=feat.fd_haralick(int_image)
     haralick_max=np.max(haralick)
     haralick_mean=np.mean(haralick)
     
-    # Feature 39 to 44
+    # Feature 41 to 46
     contrast, dissimilarity, homogeneity, energy, correlation, ASM =feat.GLCM_features(int_image)
     
+    # Feature 47
+    regions = regionprops(single_mask)
+    eccentricity=regions[0].eccentricity
+    solidity=regions[0].solidity
+    
+    
+    
     #Concatenate all features for all Training Images in an ndarry
-    features.append([intensity,std_dev, gabor_dev0,gabor_dev1,gabor_dev2,gabor_dev3,gabor_dev4,gabor_dev5,
+    features.append([intensity,maxIntensity, minIntensity, std_dev, gabor_dev0,gabor_dev1,gabor_dev2,gabor_dev3,gabor_dev4,gabor_dev5,
                      gabor_dev6,gabor_dev7,gabor_dev8,gabor_dev9,gabor_dev10,gabor_dev11,gabor_dev12,gabor_dev13
                      ,gabor_dev14,gabor_dev15,gabor0,gabor1,gabor2,gabor3,gabor4,gabor5,gabor6,gabor7,gabor8,
                      gabor9,gabor10,gabor11,gabor12,gabor13,gabor14,gabor15,hu_moments_max, hu_moments_mean,haralick_max, haralick_mean

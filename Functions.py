@@ -2,7 +2,6 @@ import os
 import numpy as np
 import random
 from matplotlib import pyplot as plt
-from sklearn.neighbors import KNeighborsClassifier
 from skimage.filters import gabor
 
 random.seed(0)

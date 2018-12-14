@@ -65,3 +65,4 @@ def GLCM_features(image):
     ASM          = np.dtype(float).type(greycoprops(glcm, 'ASM')[0])
     
     return contrast, dissimilarity, homogeneity, energy, correlation, ASM
+
