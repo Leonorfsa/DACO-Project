@@ -39,7 +39,7 @@ features_val=[]
 labels = []
 labels_val=[]
 
-for n in range(134):
+for n in range(len(nodules)):
     nodule = np.load(nodules[n])
     mask = np.load(masks[n])
     
@@ -91,7 +91,6 @@ for n in images_indexes:
                                         # Append acrescenta esses elementos 
     # Features 2 and 3     
     maxIntensity=np.max(np.ravel(single_image))
-    minIntensity=np.min(np.ravel(single_image))
     
      # Feature 4
     std_dev=np.std(np.ravel(single_image))
@@ -149,20 +148,20 @@ for n in images_indexes:
     contrast, dissimilarity, homogeneity, energy, correlation, ASM =feat.GLCM_features(int_image)
     
     # Feature 47
-#    regions = regionprops(single_mask)
-#    eccentricity=regions[0].eccentricity
-#    solidity=regions[0].solidity
+    regions = regionprops(int_image)
+    eccentricity=regions[0].eccentricity
+    solidity=regions[0].solidity
     
     
     
     #Concatenate all features for all Training Images in an ndarry
-    features.append([intensity,maxIntensity, minIntensity, std_dev, gabor_dev0,gabor_dev1,gabor_dev2,gabor_dev3,gabor_dev4,gabor_dev5,
+    features.append([intensity,maxIntensity, std_dev, gabor_dev0,gabor_dev1,gabor_dev2,gabor_dev3,gabor_dev4,gabor_dev5,
                      gabor_dev6,gabor_dev7,gabor_dev8,gabor_dev9,gabor_dev10,gabor_dev11,gabor_dev12,gabor_dev13
                      ,gabor_dev14,gabor_dev15,gabor0,gabor1,gabor2,gabor3,gabor4,gabor5,gabor6,gabor7,gabor8,
                      gabor9,gabor10,gabor11,gabor12,gabor13,gabor14,gabor15,hu_moments_max, hu_moments_mean,haralick_max, haralick_mean
                      ,contrast, dissimilarity, homogeneity, energy, correlation, ASM])
 
-    total_texture=np.hstack(new_texture).T
+    total_texture=np.float64(np.hstack(new_texture).T)
     
 #Data Standerization (To ensure mean=0 and std=1)
 scaler = StandardScaler().fit(features)
@@ -171,22 +170,32 @@ features=scaler.transform(features)
 
 #%% Classificators
 
-# SVMs 
+## SVMs 
+#
+## Create the SVC model object
+#C = 1.0 # SVM regularization parameter
+#svc = svm.SVC(kernel='linear', C=C, decision_function_shape='ovr').fit(features, total_texture)
+#print('Linear SVM score for train: %f',svc.score(features,total_texture))
+#
+##f, axarr = plt.subplots(1,3)
+##axarr[0].plot_decision_boundary_iris(features, svc, 'Linear SVM')
+#
+## Create the SVC model object
+#C = 1.0 # SVM regularization parameter
+#svc_kernel = svm.SVC(kernel='rbf', C=C, decision_function_shape='ovr').fit(features, total_texture)
+#print('RBF SVM score for train: %f',svc_kernel.score(features,total_texture))
+##axarr[1].plot_decision_boundary_iris(features, svc_kernel, 'SVM with RBF kernel')
 
-# Create the SVC model object
-C = 1.0 # SVM regularization parameter
-svc = svm.SVC(kernel='linear', C=C, decision_function_shape='ovr').fit(features, total_texture)
-print('Linear SVM score for train: %f',svc.score(features,total_texture))
 
-#f, axarr = plt.subplots(1,3)
-#axarr[0].plot_decision_boundary_iris(features, svc, 'Linear SVM')
-
-# Create the SVC model object
-C = 1.0 # SVM regularization parameter
-svc_kernel = svm.SVC(kernel='rbf', C=C, decision_function_shape='ovr').fit(features, total_texture)
-print('RBF SVM score for train: %f',svc_kernel.score(features,total_texture))
-#axarr[1].plot_decision_boundary_iris(features, svc_kernel, 'SVM with RBF kernel')
-
+#SVM Grid search or Random Search
+parameters = [{'kernel': ['rbf'],
+               'gamma': [0.001, 0.01, 0.1, 1, 10],
+                'C': [0.1, 1, 10, 100]},
+              {'kernel': ['linear'], 'C': [1, 10, 100]}]
+clf_SVM, maxAccuracy_SVM=Classifiers.SVMs_grid(features, total_texture, parameters)
+svm_classifier, maxAccuracy_rand=Classifiers.SVMs_rand(features, total_texture, parameters)
+print('SVMs rand: %f',svm_classifier.score(features,total_texture))
+print('SVMs grid: %f',clf_SVM.score(features,total_texture))
 
 
 n_neighbors = [1,3,5,7,9,11,13,15]
@@ -200,8 +209,6 @@ print('KNN score for train: %f',knn.score(features,total_texture))
 #models.append(('KNN', KNeighborsClassifier()))#K-Neighbors
 
 #%% TEXTURE CLASSIFICATION (VALIDATION)
-
-
 
 
 texture_val=[]
@@ -308,7 +315,7 @@ for n in images_indexes_val:
     #Data Standerization (To ensure mean=0 and std=1)
 
 features_val=scaler.transform(features_val)
-print('Linear SVM score for validation: %f',svc.score(features_val,total_texture_val))
-print('RGF SVM score for validation: %f', svc_kernel.score(features_val,total_texture_val))
+print('SVMs_grid SVM score for validation: %f',clf_SVM.score(features_val,total_texture_val))
+print('SVMs_rand SVM score for validation: %f', svm_classifier.score(features_val,total_texture_val))
 print('KNN score for validation: %f', knn.score(features,total_texture))
 

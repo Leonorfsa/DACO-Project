@@ -2,6 +2,7 @@ from sklearn import naive_bayes
 from sklearn.model_selection import cross_val_score
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.preprocessing import label_binarize
 from sklearn import svm
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from sklearn.tree import DecisionTreeClassifier
@@ -45,7 +46,7 @@ def logReg(X_train, y_train, regularization_params):
 def KNeighbors(n_neighbors, X_train, y_train):
     scores_knn=[]
     for n in n_neighbors:
-        knn = KNeighborsClassifier(n_neighbors = n)
+        knn = KNeighborsClassifier(n_neighbors=n) #=n)
         cv_scores = cross_val_score(knn, X_train, y_train, cv=10,scoring='roc_auc')
         print("n=",n,"Accuracy kNN",(cv_scores.mean(), cv_scores.std() * 2))
         scores_knn.append(cv_scores.mean())
@@ -61,10 +62,10 @@ def KNeighbors(n_neighbors, X_train, y_train):
 # SÓ VAMOS USAR ESTE NO FIM, POR ENQUANTO BASTA O RANDOM (EM BAIXO)
     
 def SVMs_grid(X_train, y_train, parameters):
-
-    clf = GridSearchCV(svm.SVC(decision_function_shape='ovr'), parameters, cv=10,scoring='roc_auc')
+    #y = label_binarize(y_train, classes=[0, 1, 2])
+    clf = GridSearchCV(svm.SVC(decision_function_shape='ovr'), parameters, cv=10)
     print("# Tuning hyper-parameters")
-    clf.fit(X_train, y_train);
+    clf.fit(X_train, y_train)
     
     print("Best parameters set found on training set:")
     print()
@@ -77,7 +78,7 @@ def SVMs_grid(X_train, y_train, parameters):
     for mean, std, params in zip(means, stds, clf.cv_results_['params']):
         print("%0.3f (+/-%0.03f) for %r"
               % (mean, std * 2, params))
-    maxAccuracy_SVM=np.amax(means); 
+    maxAccuracy_SVM=np.amax(means)
     
     clf=svm.SVC(probability=True, **clf.best_params_)
     clf.fit(X_train, y_train)
@@ -88,7 +89,7 @@ def SVMs_grid(X_train, y_train, parameters):
 
 def SVMs_rand(X_train, y_train, parameters):
 
-    clf = RandomizedSearchCV(svm.SVC(decision_function_shape='ovr'), parameters, cv=10,scoring='roc_auc')
+    clf = RandomizedSearchCV(svm.SVC(decision_function_shape='ovr'), parameters, cv=10)
     print("# Tuning hyper-parameters")
     clf.fit(X_train, y_train);
     

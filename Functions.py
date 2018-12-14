@@ -66,8 +66,6 @@ def show2DImages(nodule, mask, addapt=0):
     plot_args['vmax']=1
     ax[1].imshow(mask,**plot_args)
     plt.show()
-    
-    return
 
 
 #_____________________________________

@@ -102,8 +102,8 @@ def _hessian_matrix_image(H_elems):
 
 def eigenValuesShapeIndexCurveness(sigmas, flat_nodule):
     
-    shapeindex = np.zeros((len(flat_nodule),len(sigmas)))
-    cv = np.zeros((len(flat_nodule),len(sigmas)))
+    shapeindex = np.zeros((flat_nodule.shape[0], flat_nodule.shape[1],len(sigmas)))
+    cv = np.zeros((flat_nodule.shape[0], flat_nodule.shape[1],len(sigmas)))
     
     eigValues = []
     
@@ -111,7 +111,6 @@ def eigenValuesShapeIndexCurveness(sigmas, flat_nodule):
         #já não é preciso fazer o filtro gaussiano porque esta função faz 
         #para os vários sigmas usados vamos guardar apenas o tuplo com os maiores valores de hrr, hrc, hcc
         h_elem = hessian_matrix(flat_nodule, sigma = s, order='rc')
-        print(h_elem)
         eigValues = hessian_matrix_eigvals(h_elem)
         shapeindex[:,:,i] = ((2/math.pi)*np.arctan((eigValues[0]+eigValues[1])/(eigValues[0])-eigValues[1]))
         aux = np.sqrt((np.power(eigValues[1],2)+(np.power(eigValues[0],2))))
