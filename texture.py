@@ -5,10 +5,12 @@ from matplotlib import pyplot as plt
 import os
 import pandas as pd
 import Functions 
+import Classifiers
 import PreProcessing
 import texture_features as feat
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn import svm
 from skimage.measure import regionprops
 
@@ -89,7 +91,7 @@ for n in images_indexes:
                                         # Append acrescenta esses elementos 
     # Features 2 and 3     
     maxIntensity=np.max(np.ravel(single_image))
-    minIntensity=np.min(np.avel(single_image))
+    minIntensity=np.min(np.ravel(single_image))
     
      # Feature 4
     std_dev=np.std(np.ravel(single_image))
@@ -147,9 +149,9 @@ for n in images_indexes:
     contrast, dissimilarity, homogeneity, energy, correlation, ASM =feat.GLCM_features(int_image)
     
     # Feature 47
-    regions = regionprops(single_mask)
-    eccentricity=regions[0].eccentricity
-    solidity=regions[0].solidity
+#    regions = regionprops(single_mask)
+#    eccentricity=regions[0].eccentricity
+#    solidity=regions[0].solidity
     
     
     
@@ -176,26 +178,26 @@ C = 1.0 # SVM regularization parameter
 svc = svm.SVC(kernel='linear', C=C, decision_function_shape='ovr').fit(features, total_texture)
 print('Linear SVM score for train: %f',svc.score(features,total_texture))
 
-f, axarr = plt.subplots(1,3)
-axarr[0].plot_decision_boundary_iris(features, svc, 'Linear SVM')
+#f, axarr = plt.subplots(1,3)
+#axarr[0].plot_decision_boundary_iris(features, svc, 'Linear SVM')
 
 # Create the SVC model object
 C = 1.0 # SVM regularization parameter
 svc_kernel = svm.SVC(kernel='rbf', C=C, decision_function_shape='ovr').fit(features, total_texture)
 print('RBF SVM score for train: %f',svc_kernel.score(features,total_texture))
-axarr[1].plot_decision_boundary_iris(features, svc_kernel, 'SVM with RBF kernel')
+#axarr[1].plot_decision_boundary_iris(features, svc_kernel, 'SVM with RBF kernel')
 
 
 
-n_neighbors=5
-knn=Functions.KNeighbors(n_neighbors, features, total_texture) #Training K-neighbours
+n_neighbors = [1,3,5,7,9,11,13,15]
+knn, knnaccuracy=Classifiers.KNeighbors(n_neighbors, features, total_texture) #Training K-neighbours
 print('KNN score for train: %f',knn.score(features,total_texture))
-axarr[2].plot_decision_boundary_iris(features, knn, 'KNN')
+#axarr[2].plot_decision_boundary_iris(features, knn, 'KNN')
 
 
-models = []
-models.append(('LR', LogisticRegression(random_state=9))) # Logistic Regression
-models.append(('KNN', KNeighborsClassifier()))#K-Neighbors
+#models = []
+#models.append(('LR', LogisticRegression(random_state=9))) # Logistic Regression
+#models.append(('KNN', KNeighborsClassifier()))#K-Neighbors
 
 #%% TEXTURE CLASSIFICATION (VALIDATION)
 

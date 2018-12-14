@@ -77,10 +77,10 @@ for n in range(0,(number_images)):
     gabor14=np.ravel(gabor_features[14])
     gabor15=np.ravel(gabor_features[15])
 
-    gabor_mult1=gabor0*gabor1
-    gabor_mult2=gabor2*gabor3
-    gabor_mult3=gabor4*gabor5
-    gabor_mult4=gabor6*gabor7
+#    gabor_mult1=gabor0*gabor1
+#    gabor_mult2=gabor2*gabor3
+#    gabor_mult3=gabor4*gabor5
+#    gabor_mult4=gabor6*gabor7
     
 #    gabor_div1=gabor8/gabor9
 #    gabor_div2=gabor10/gabor11
@@ -96,7 +96,7 @@ for n in range(0,(number_images)):
     #Concatenate all features for all Training Images in an ndarry
     features.append([intensity,entrop,eigVal0, eigVal1,shapeind,cv, gabor0, 
                      gabor1,gabor2, gabor3, gabor4, gabor5, gabor6, gabor7, gabor8, 
-                     gabor9, gabor10, gabor11, gabor12, gabor13, gabor14, gabor15,
+                     gabor9, gabor10, gabor11, gabor12, gabor13, gabor14, gabor15])#,
                      gabor_mult1,gabor_mult2,gabor_mult3])#, gabor_div1, gabor_div2, 
                      #gabor_div3, gabor_div4])
     total_labels=np.hstack(labels)
@@ -106,3 +106,4 @@ for n in range(0,(number_images)):
 
 np.save('totalfeatures',total_features)
 np.save('totallabels',total_labels)
+np.save()

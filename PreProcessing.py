@@ -9,7 +9,8 @@ def gaussFiltering(nodule, sigma=1, output=None, mode='nearest',
     gaussImage=gaussian(nodule, sigma, output,mode,cval,multichannel,preserve_range,truncate)
     return gaussImage
 
-
+# Tirar o pulmão? 
+    
 
 
 

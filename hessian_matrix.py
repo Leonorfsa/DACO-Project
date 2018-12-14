@@ -1,16 +1,19 @@
 #================================================
 #            HESSIAN MATRIX FORMULAS
 #================================================
-# Functions here:
-#   - hessian_matrix_eigvals: used on eigenValues (remove if skimage.feature.hessian_matrix_eigvals works)
-#   - _image_orthogonal_matrix22_eigvals: used on hessian_matrix_eigvals (same as previous)
-#   - _hessian_matrix_image: (same as previous)
 #
+#   These functions weren't made by us:
+#   - hessian_matrix_eigvals: used on eigenValues
+#   - _image_orthogonal_matrix22_eigvals: used on hessian_matrix_eigvals
+#   - _hessian_matrix_image (same as previous)
+# They should be removed if skimage.feature.hessian_matrix_eigvals works.
+#
+#   Made by us:
 #   - eigenValuesShapeIndexCurveness: returns hessian matrix eigenValues, shape index and curvedness
 
 #%% IMPORTS
 
-from skimage.feature import hessian_matrix#, hessian_matrix_eigvals
+from skimage.feature import hessian_matrix# hessian_matrix_eigvals
 import numpy as np
 from itertools import combinations_with_replacement
 import math
@@ -98,16 +101,17 @@ def _hessian_matrix_image(H_elems):
 
 
 def eigenValuesShapeIndexCurveness(sigmas, flat_nodule):
-    #já não é preciso fazer o filtro gaussiano porque esta função faz 
     
-    shapeindex = np.zeros((51,51,len(sigmas)))
-    cv = np.zeros((51,51,len(sigmas)))
+    shapeindex = np.zeros((len(flat_nodule),len(sigmas)))
+    cv = np.zeros((len(flat_nodule),len(sigmas)))
+    
     eigValues = []
     
     for (i,s) in enumerate(sigmas):
         #já não é preciso fazer o filtro gaussiano porque esta função faz 
         #para os vários sigmas usados vamos guardar apenas o tuplo com os maiores valores de hrr, hrc, hcc
         h_elem = hessian_matrix(flat_nodule, sigma = s, order='rc')
+        print(h_elem)
         eigValues = hessian_matrix_eigvals(h_elem)
         shapeindex[:,:,i] = ((2/math.pi)*np.arctan((eigValues[0]+eigValues[1])/(eigValues[0])-eigValues[1]))
         aux = np.sqrt((np.power(eigValues[1],2)+(np.power(eigValues[0],2))))

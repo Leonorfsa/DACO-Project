@@ -26,49 +26,49 @@ total_features=scaler.transform(total_features)
 image_indexes=np.array(range(0,number_images))
 
 #%% TRAIN TEST SPLIT
-X_train, X_test, Y_train, Y_test = train_test_split(total_features, total_labels, 
-                                                    test_size=0.20,random_state=0, stratify=total_labels)
+#X_train, X_test, Y_train, Y_test = train_test_split(total_features, total_labels, 
+#                                                    test_size=0.20,random_state=0, stratify=total_labels)
 
 
 #TRAIN_TEST_SPLIT NÃO ESTAVA A FUNCIONAR
-#train_size=70
-#            #int(input('What is the percentage of the Dataset used for Training (0-100): '))/100
-#start = time.time()
-#np.random.shuffle(image_indexes)
-#X_train_indexes=image_indexes[:int(len(image_indexes)*train_size)]
-#X_val_indexes=image_indexes[:int(len(image_indexes)*train_size)]
-#
-#X_train=np.zeros((1,int(len(total_features[0]))))
-#Y_train=[]
-#Train_pixel_index=[]
-#for i in X_train_indexes:
-#    first_line=i*2601
-#    last_line=((i+1)*2601)
-#    Train_pixel_index.extend(range(first_line, last_line))
-#    Train_pixel_index.sort()
-#    
-#for j in Train_pixel_index:
-#       X_train=np.vstack((X_train,total_features[j]))
-#       Y_train.append(total_labels[j])
-#
-#Y_train=np.asarray(Y_train)#X_train_index, X_test_index=train_test_split(image_indexes, 0.3, random_state=42)
-#X_train = np.delete(X_train, (0), axis=0)
-#
-#X_val=np.zeros((1,6))
-#Y_val=[]
-#Val_pixel_index=[]
-#for i in X_val_indexes:
-#    first_line=i*2601
-#    last_line=((i+1)*2601)
-#    Val_pixel_index.extend(range(first_line, last_line))
-#    Val_pixel_index.sort()
-#    
-#for j in Val_pixel_index:
-#       X_val=np.vstack((X_val,total_features[j]))
-#       Y_val.append(total_labels[j])
-#       
-#Y_val=np.asarray(Y_val)#X_train_index, X_test_index=train_test_split(image_indexes, 0.3, random_state=42)
-#X_val=np.delete(X_val, (0), axis=0)
+train_size=70
+            #int(input('What is the percentage of the Dataset used for Training (0-100): '))/100
+start = time.time()
+np.random.shuffle(image_indexes)
+X_train_indexes=image_indexes[:int(len(image_indexes)*train_size)]
+X_val_indexes=image_indexes[:int(len(image_indexes)*train_size)]
+
+X_train=np.zeros((1,int(len(total_features[0]))))
+Y_train=[]
+Train_pixel_index=[]
+for i in X_train_indexes:
+    first_line=i*2601
+    last_line=((i+1)*2601)
+    Train_pixel_index.extend(range(first_line, last_line))
+    Train_pixel_index.sort()
+    
+for j in Train_pixel_index:
+       X_train=np.vstack((X_train,total_features[j]))
+       Y_train.append(total_labels[j])
+
+Y_train=np.asarray(Y_train)#X_train_index, X_test_index=train_test_split(image_indexes, 0.3, random_state=42)
+X_train = np.delete(X_train, (0), axis=0)
+
+X_val=np.zeros((1,6))
+Y_val=[]
+Val_pixel_index=[]
+for i in X_val_indexes:
+    first_line=i*2601
+    last_line=((i+1)*2601)
+    Val_pixel_index.extend(range(first_line, last_line))
+    Val_pixel_index.sort()
+    
+for j in Val_pixel_index:
+       X_val=np.vstack((X_val,total_features[j]))
+       Y_val.append(total_labels[j])
+       
+Y_val=np.asarray(Y_val)#X_train_index, X_test_index=train_test_split(image_indexes, 0.3, random_state=42)
+X_val=np.delete(X_val, (0), axis=0)
 
 #%%
 
