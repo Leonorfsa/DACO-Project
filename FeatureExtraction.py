@@ -1,13 +1,13 @@
 import os
 import numpy as np
 import Functions
+import pickle
 import PreProcessing as prepros
 import hessian_matrix as hessian
 from skimage.filters.rank import entropy
 from skimage.morphology import disk
 
-number_images=134
-              #int(input('Enter the length of the Dataset (number of images):'))
+number_images=134 #int(input('Enter the length of the Dataset (number of images):'))
 
 #%% LOADING OF ALL IMAGES AND MASKS
 curr_path = os.getcwd() #find the current working directory
@@ -21,8 +21,8 @@ images_3d=[]
 masks_3d=[]
 sliced_images=[]
 sliced_masks=[]
-features = []
-labels=[]
+total_features = []
+total_labels = []
 
 for n in range(0,(number_images)):
     single_image_3d = np.load(images[n])
@@ -52,13 +52,14 @@ for n in range(0,(number_images)):
     
     #Hessian Matrix
     sigmas = [0.5,0.60,0.70,0.8,0.9,1,1.2,2,4,5]
-    shapeind, cv, eigValues=hessian.eigenValuesShapeIndexCurveness(sigmas, sliced_images[n])
-    
-    eigVal0=np.ravel(eigValues[0]) # Feature 3
-    eigVal1=np.ravel(eigValues[1]) # Feature 4
-    shapeind=np.ravel(shapeind) #Feature 5
+    shapeind, cv, v_med, eigValue0,eigValue1=hessian.eigenValuesShapeIndexCurveness(sigmas, sliced_images[n])
+    eigVal0=np.ravel(eigValue0) # Feature 3
+    eigVal1=np.ravel(eigValue1) # Feature 4
+    shapeind=np.ravel(shapeind) # Feature 5
     cv=np.ravel(cv) #Feature 6
+    v_med=np.ravel(v_med) # Vmed - Feature 7
     
+    # Gabor (Feature 8 to 23)
     gabor_features=Functions.gaborFilter(sliced_images[n])
     gabor0=np.ravel(gabor_features[0])
     gabor1=np.ravel(gabor_features[1])
@@ -91,19 +92,20 @@ for n in range(0,(number_images)):
     
     #Convert labeled image into a one-dimensional array
     label=np.ravel(sliced_masks[n])
-    labels.append(label)
+    total_labels.append(label)
     
     #Concatenate all features for all Training Images in an ndarry
-    features.append([intensity,entrop,eigVal0, eigVal1,shapeind,cv, gabor0, 
+    total_features.append(np.vstack((intensity,entrop,eigVal0, eigVal1, shapeind,cv, v_med, gabor0, 
                      gabor1,gabor2, gabor3, gabor4, gabor5, gabor6, gabor7, gabor8, 
-                     gabor9, gabor10, gabor11, gabor12, gabor13, gabor14, gabor15])#,
-                     gabor_mult1,gabor_mult2,gabor_mult3])#, gabor_div1, gabor_div2, 
+                     gabor9, gabor10, gabor11, gabor12, gabor13, gabor14, gabor15)).T)#,
+#                     gabor_mult1,gabor_mult2,gabor_mult3])#, gabor_div1, gabor_div2, 
                      #gabor_div3, gabor_div4])
-    total_labels=np.hstack(labels)
-    total_features= np.hstack(features).T
 
-#%% SAVING FEATURE NDARRAY AND LABEL ARRAY IN FILES
+#%% SAVING FEATURE AND LABEL LISTS IN FILES
 
-np.save('totalfeatures',total_features)
-np.save('totallabels',total_labels)
-np.save()
+pickle.dump(total_features, open('totalfeatures.sav', 'wb'))
+pickle.dump(total_labels, open('totallabels.sav', 'wb'))
+
+# JÁ NÃO SE FAZ ASSIM
+#np.save('totalfeatures',total_features)
+#np.save('totallabels',total_labels)

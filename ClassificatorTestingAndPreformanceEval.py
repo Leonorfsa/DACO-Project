@@ -5,35 +5,44 @@ from sklearn.metrics import confusion_matrix, roc_curve
 from sklearn.metrics import auc as areaUnderCurve
 from sklearn.metrics import jaccard_similarity_score
 from matplotlib import pyplot as plt
+from ClassificatorTraining import scaler
 
-total_features=np.load('totalfeatures.npy')
-total_labels=np.load('totallabels.npy')
+#total_features=np.load('totalfeatures.npy')
+#total_labels=np.load('totallabels.npy')
 #load dos indices de val
 trained_knn = pickle.load(open('trainedknn.sav', 'rb'))
-X_val=pickle.load(open('Xval.sav', 'rb'))
-Y_val=pickle.load(open('Yval.sav', 'rb'))
-trained_SVM=pickle.load(open('SVM.sav', 'rb'))
-elapsed_time=pickle.load(open('time.sav','rb'))
-print('Time passed: ',elapsed_time)
+#trained_NB=pickle.load(open('trainedNB.sav', 'rb'))
+
+X_test=pickle.load(open('Xtest.sav', 'rb'))
+Y_test=pickle.load(open('Ytest.sav', 'rb'))
+#elapsed_time=pickle.load(open('time.sav','rb'))
+#print('Time passed: ',elapsed_time)
+
+X_test_ndarray=np.vstack(X_test[:])
+X_test_ndarray=scaler.transform(X_test_ndarray)
+
+Y_test_array=np.hstack(Y_test[:])
+
 
 #%% PREDICTIONS
-prediction=trained_knn.predict(X_val)
-prediction2=trained_SVM.predict(X_val)
-
+prediction=[]
+#for i in range(0,len(X_test)):
+#    prediction.append(trained_knn.predict(X_test[i]))
+prediction.append(trained_knn.predict(X_test_ndarray))
+prediction=prediction[0]
 # FALTAM AS OUTRAS PREDICTIONS
+
 
 #%% PREFORMANCE EVALUATION
 
-for i in range(int(len(Y_val)/2601)):
-    prediction_single=prediction[i*2601:(i+1)*2601]
-    prediction2_single=prediction2[i*2601:(i+1)*2601]
-    mask_single=Y_val[i*2601:(i+1)*2601]
-    prediction_image=np.reshape(prediction_single,[51,51])
-    prediction2_image=np.reshape(prediction2_single,[51,51])
-    GT_image=np.reshape(mask_single,[51,51])
-    Functions.show2DImages(prediction2_image, GT_image)
-
-TN, FP, FN, TP =confusion_matrix(Y_val, prediction2).ravel()
+prediction_list=[]
+for i in range(0,len(Y_test)):
+    prediction_image=np.reshape(prediction[i*2601:(i+1)*2601],[51,51])
+    GT_image=np.reshape(Y_test[i],[51,51])
+    #Functions.show2DImages(prediction_image, GT_image, 1)
+    prediction_list.append(prediction[i*2601:(i+1)*2601])
+    
+TN, FP, FN, TP =confusion_matrix(Y_test_array, prediction).ravel()
 
 Acc=(TP+TN)/(TP+TN+FP+FN)            
 Sens1=TP/(TP+FN)
@@ -44,21 +53,21 @@ Spec0=TP/(TP+FN)
 auc=areaUnderCurve([0,1-Spec1,1], [0,Sens1,1]) #It's the same for both men and women
 print("sklearn's AUC= ",auc)
 
-jaccard=jaccard_similarity_score(Y_val,prediction)
+jaccard=TP/(TP+FP+FN)
 print("Jaccard Coefficient= ",jaccard)
 #AUC for KNN 5 neighbours with 70% for test was 0.826 and Jaccard coefficient 0.85
 #AUC for SVM with 70% for test was 0.846 and Jaccard coefficient 0.828
 
-# ROC Curve
-fpr, tpr, thresholds = roc_curve(Y_val, prediction2)
-plt.figure(figsize=(6, 6))
-plt.plot(fpr,  tpr)
-plt.xlim([0.0, 1.0])
-plt.ylim([0.0, 1.0])
-plt.title('ROC curve for classifier')
-plt.xlabel('False Positive Rate (1 - Specificity)')
-plt.ylabel('True Positive Rate (Sensitivity)')
-plt.grid(True)
+## ROC Curve
+#fpr, tpr, thresholds = roc_curve(Y_val, prediction2)
+#plt.figure(figsize=(6, 6))
+#plt.plot(fpr,  tpr)
+#plt.xlim([0.0, 1.0])
+#plt.ylim([0.0, 1.0])
+#plt.title('ROC curve for classifier')
+#plt.xlabel('False Positive Rate (1 - Specificity)')
+#plt.ylabel('True Positive Rate (Sensitivity)')
+#plt.grid(True)
 
 
 ##%%  APRESENTAR NUMA FIGURA

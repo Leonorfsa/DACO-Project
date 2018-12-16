@@ -12,7 +12,7 @@ import numpy as np
 
 #%% CLASSIFIERS 
 
-###################################NAIVE BAYES###############################################
+#========================== NAIVE BAYES ==========================
 
 def naiveBayes(X_train, Y_train):
     gnb = naive_bayes.GaussianNB();
@@ -22,9 +22,9 @@ def naiveBayes(X_train, Y_train):
     
     print("Accuracy Gaussian Naive Bayes: ",(cv_scores.mean(), cv_scores.std() * 2))
     maxAccuracy_gnb=cv_scores.mean(); 
-    return maxAccuracy_gnb
+    return gnb, maxAccuracy_gnb
 
-###############################LOGISTIC REGRESSION############################################
+#========================== LOGISTIC REGRESSION ==========================
 
 def logReg(X_train, y_train, regularization_params):
     scores_lr=[]
@@ -41,7 +41,7 @@ def logReg(X_train, y_train, regularization_params):
     clf_LR.fit(X_train, y_train)
     return clf_LR, maxAccuracy_lr
 
-###############################K NEAREST NEIGHBOUR############################################
+#========================== K NEAREST NEIGHBOUR ==========================
 
 def KNeighbors(n_neighbors, X_train, y_train):
     scores_knn=[]
@@ -58,7 +58,7 @@ def KNeighbors(n_neighbors, X_train, y_train):
     knn.fit(X_train, y_train)
     return knn, maxAccuracy_knn
 
-###############################SVM grid search################################
+#==========================SVM grid search==========================
 # SÓ VAMOS USAR ESTE NO FIM, POR ENQUANTO BASTA O RANDOM (EM BAIXO)
     
 def SVMs_grid(X_train, y_train, parameters):
@@ -85,7 +85,7 @@ def SVMs_grid(X_train, y_train, parameters):
     
     return clf, maxAccuracy_SVM
 
-###############################SVM random search###############################
+#==========================SVM random search==========================
 
 def SVMs_rand(X_train, y_train, parameters):
 
@@ -111,7 +111,7 @@ def SVMs_rand(X_train, y_train, parameters):
     
     return clf, maxAccuracy_SVM
 
-###############################DECISION TREE############################################
+#==========================DECISION TREE==========================
 
 def decision_trees(X_train, y_train, param_grid):
 

@@ -104,19 +104,26 @@ def eigenValuesShapeIndexCurveness(sigmas, flat_nodule):
     
     shapeindex = np.zeros((flat_nodule.shape[0], flat_nodule.shape[1],len(sigmas)))
     cv = np.zeros((flat_nodule.shape[0], flat_nodule.shape[1],len(sigmas)))
-    
-    eigValues = []
+    v_med = np.zeros((flat_nodule.shape[0], flat_nodule.shape[1],len(sigmas)))
+    eigValues = np.zeros((2,flat_nodule.shape[0], flat_nodule.shape[1],len(sigmas)))
     
     for (i,s) in enumerate(sigmas):
         #já não é preciso fazer o filtro gaussiano porque esta função faz 
         #para os vários sigmas usados vamos guardar apenas o tuplo com os maiores valores de hrr, hrc, hcc
         h_elem = hessian_matrix(flat_nodule, sigma = s, order='rc')
-        eigValues = hessian_matrix_eigvals(h_elem)
-        shapeindex[:,:,i] = ((2/math.pi)*np.arctan((eigValues[0]+eigValues[1])/(eigValues[0])-eigValues[1]))
-        aux = np.sqrt((np.power(eigValues[1],2)+(np.power(eigValues[0],2))))
+        eigValues[:,:,:,i] = hessian_matrix_eigvals(h_elem)
+        shapeindex[:,:,i] = ((2/math.pi)*np.arctan((eigValues[0,:,:,i]+eigValues[1,:,:,i])/(eigValues[0,:,:,i])-eigValues[1,:,:,i]))
+        aux = np.sqrt((np.power(eigValues[1,:,:,i],2)+(np.power(eigValues[0,:,:,i],2))))
         cv[:,:,i] = aux
-        
+        for j in range(len(eigValues[0])):
+            for k in range(len(eigValues[0])):
+                if (eigValues[0,j,k,i]+eigValues[1,j,k,i] >= 0):
+                    v_med[j,k,i] = 0
+                else:
+                    v_med[j,k,i] = -(eigValues[0,j,k,i]/eigValues[1,j,k,i]) * (eigValues[0,j,k,i]+eigValues[1,j,k,i])
     cv = np.max(cv, axis = -1)
     shapeindex = np.max(shapeindex, axis = -1) 
- 
-    return shapeindex,cv,eigValues
+    v_med = np.max(v_med, axis = -1) 
+    eigValues0=np.max(eigValues[0], axis=-1)
+    eigValues1=-(np.min(eigValues[1],axis=-1))
+    return shapeindex,cv,v_med, eigValues0,eigValues1
