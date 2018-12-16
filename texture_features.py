@@ -1,11 +1,8 @@
 from skimage.feature import greycomatrix, greycoprops
-#from sklearn import preprocessing
 import numpy as np
 from skimage.filters import gabor
 import mahotas
 import cv2
-#from matplotlib import pyplot as plt
-
 
 # Feature 1: Mean and Standard Deviation of Gabor Filters 
 def gaborFilter(image):
@@ -22,16 +19,6 @@ def gaborFilter(image):
                 filt_real, filt_imag = gabor(image, frequency, theta=theta,
                                           sigma_x=sigma, sigma_y=sigma)
                 filtered_ims.append(filt_real)
-                
-#    print(len(filtered_ims))
-#    f, axarr = plt.subplots(4,4)
-#    for i in range(4):
-#        for j in range(4):
-#            axarr[i,j].imshow(filtered_ims[4*i + j], cmap='gray')
-##    for i in range(4):
-##        for j in range(4):
-##            axarr[i,j+4].imshow(filtered_ims[4*i + j+4], cmap='gray')
-#    plt.show()  
     
     for i in range(len(filtered_ims)):
         filtered_mean.append(np.mean(filtered_ims[i]))
@@ -46,9 +33,7 @@ def fd_hu_moments(image):
 
 # Feature 3: Haralick Texture
 def fd_haralick(image):
-    # compute the haralick texture feature vector
     haralick = mahotas.features.haralick(image).mean(axis=0)
-    # return the result
     return haralick
 
 # Feature 4: GLCM 
