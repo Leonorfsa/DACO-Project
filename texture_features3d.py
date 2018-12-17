@@ -1,9 +1,9 @@
 from skimage.feature import greycomatrix, greycoprops
-from skimage.feature import local_binary_pattern
 import numpy as np
 from skimage.filters import gabor
 import mahotas
 import cv2
+from skimage.feature import local_binary_pattern
 
 # Feature 1: Mean and Standard Deviation of Gabor Filters 
 def gaborFilter(image):
@@ -58,10 +58,5 @@ def LBP_features(image, mask):
     for radius in range(1,3):
         for n_points in range(5,15):
             lbp = local_binary_pattern(image, n_points, radius, 'default') #'ror' for rotation invariant
-    return lbp
-
-def hist(ax, lbp):
-    n_bins = int(lbp.max() + 1)
-    return ax.hist(lbp.ravel(), normed=True, bins=n_bins, range=(0, n_bins),
-                   facecolor='0.5')
+    return lbp[mask]
   

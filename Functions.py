@@ -1,12 +1,6 @@
-import os
-import numpy as np
-import random
-from matplotlib import pyplot as plt
-from skimage.filters import gabor
+#%%
 
-random.seed(0)
-
-#%% List of functions: 
+# List of functions: 
 #   - find extension 
 #   - get middle slice
 #   - shapeindex
@@ -15,6 +9,14 @@ random.seed(0)
 #   - sample / sampling2: returns sampled_labels, sampled_features  
 #   - KNeighbors
 #   - confusionMatrixCalculator: returns TP, TN, FP, FN
+
+import os
+import numpy as np
+import random
+from matplotlib import pyplot as plt
+from skimage.filters import gabor
+
+random.seed(0)
 
 #_____________________________________
 # FIND EXTENSION DIRECTORY
@@ -33,7 +35,7 @@ def findExtension(directory,extension='.npy'):
     return files, full_path
 
 #_____________________________________
-# GET MIDDLE SLICE
+# GET MIDDLE AND TOP SLICES
 #   Pega na fatia do meio de cada cubo 51x51x51 
 #_____________________________________
     
@@ -41,6 +43,9 @@ def getMiddleSlice(volume):
     sh = volume.shape
     return volume[...,np.int(sh[-1]/2)]    
 
+def getuperSlice(volume):
+    sh = volume.shape
+    return volume[...,np.int(sh[-1]/4)] # This slice is far away from the nodule
 
 #_____________________________________
 # SHOW IMAGES
@@ -72,28 +77,8 @@ def show2DImages(nodule, mask, addapt=0):
 # Sample nodule and background
 #_____________________________________
 
-##sample points from a nodule mask
-#np.random.seed(0)
-#def sample(nodule,mask):
-#    sampledmask = np.zeros(mask.shape)
-#    sampled_background=np.zeros((mask==0).shape)
-#    loc = np.nonzero(mask)
-#    loc_zero=np.nonzero(mask==0)
-#    indexes = [x for x in range(loc[0].shape[0])]
-#    indexes_zeros=[x for x in range(loc_zero[0].shape[0])]
-#    np.random.shuffle(indexes)
-#    np.random.shuffle(indexes_zeros)
-#    #get 10% of the points
-#    indexes10perc = indexes[:int(len(indexes)*0.3)]
-#    indexes10perc_background=indexes_zeros[:int(len(indexes)*0.3)]
-#    
-#    sampledmask[loc[0][indexes10perc],loc[1][indexes10perc]]=True
-#    sampled_background[loc_zero[0][indexes10perc_background],loc_zero[1][indexes10perc_background]]=True
-#    sampledtotal=sampledmask+sampled_background
-#    samplednodule=nodule*sampledtotal
-#    return samplednodule,sampledmask
 
-def sampling2(total_features,total_labels, number_pixels_each_label):
+def sampling(total_features,total_labels, number_pixels_each_label):
     # This functions takes in the matrix containing all features (in which each 
     # line corresponds to a pixel in the original image) and the array 
     # containing all labels, and samples leaving full lines, assuring the number of 

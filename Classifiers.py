@@ -7,6 +7,7 @@ from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from sklearn.tree import DecisionTreeClassifier
 import numpy as np
 
+np.random.seed(0)
 
 #%% CLASSIFIERS 
 

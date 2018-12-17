@@ -13,7 +13,7 @@
 
 #%% IMPORTS
 
-from skimage.feature import hessian_matrix# hessian_matrix_eigvals
+from skimage.feature import hessian_matrix#, hessian_matrix_eigvals
 import numpy as np
 from itertools import combinations_with_replacement
 import math
@@ -100,6 +100,7 @@ def _hessian_matrix_image(H_elems):
     return hessian_image
 
 
+#%% Our function: 
 def eigenValuesShapeIndexCurveness(sigmas, flat_nodule):
     
     shapeindex = np.zeros((flat_nodule.shape[0], flat_nodule.shape[1],len(sigmas)))
@@ -108,11 +109,10 @@ def eigenValuesShapeIndexCurveness(sigmas, flat_nodule):
     eigValues = np.zeros((2,flat_nodule.shape[0], flat_nodule.shape[1],len(sigmas)))
     
     for (i,s) in enumerate(sigmas):
-        #já não é preciso fazer o filtro gaussiano porque esta função faz 
-        #para os vários sigmas usados vamos guardar apenas o tuplo com os maiores valores de hrr, hrc, hcc
+        # for all entered sigmas, we will only keep the tuple with the biggest values of hrr, hrc and hcc
         h_elem = hessian_matrix(flat_nodule, sigma = s, order='rc')
         eigValues[:,:,:,i] = hessian_matrix_eigvals(h_elem)
-        shapeindex[:,:,i] = ((2/math.pi)*np.arctan((eigValues[0,:,:,i]+eigValues[1,:,:,i])/(eigValues[0,:,:,i])-eigValues[1,:,:,i]))
+        shapeindex[:,:,i] = ((2/math.pi)*np.arctan((eigValues[0,:,:,i]+eigValues[1,:,:,i])/((eigValues[0,:,:,i])-eigValues[1,:,:,i])))
         aux = np.sqrt((np.power(eigValues[1,:,:,i],2)+(np.power(eigValues[0,:,:,i],2))))
         cv[:,:,i] = aux
         for j in range(len(eigValues[0])):

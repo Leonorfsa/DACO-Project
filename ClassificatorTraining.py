@@ -5,14 +5,11 @@ import random
 import Functions
 import Classifiers
 import pickle
-import time
-from sklearn.svm import SVC
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 
-start_time = time.time()
-total_features=pickle.load(open('totalfeatures.sav', 'rb'))
-total_labels=pickle.load(open('totallabels.sav', 'rb'))
+total_features=pickle.load(open('totalfeatures_nolung.sav', 'rb'))
+total_labels=pickle.load(open('totallabels_nolung.sav', 'rb'))
 
 np.random.seed(0)
 
@@ -30,7 +27,7 @@ scaler = StandardScaler().fit(X_train_ndarray)
 X_train_ndarray=scaler.transform(X_train_ndarray)
 
 #Sampling (To ensure we train with the same number of nodule and non-nodule pixels)
-sampled_features,sampled_labels=Functions.sampling2(X_train_ndarray,Y_train_ndarray,10000) 
+sampled_features,sampled_labels=Functions.sampling(X_train_ndarray,Y_train_ndarray,10000) 
 
 
 #%%
@@ -44,7 +41,7 @@ sampled_features,sampled_labels=Functions.sampling2(X_train_ndarray,Y_train_ndar
 #clf_LR,maxAccuracy_lr=Classifiers.logReg(sampled_features, sampled_labels, regularization_params)
 
 #K-Neighbors
-n_neighbors = [1,3,5,7,9,11,13,15]
+n_neighbors =[13,15]
 knn,maxAccuracy_knn=Classifiers.KNeighbors(n_neighbors, sampled_features, sampled_labels) #Training K-neighbours
 print(knn.score(sampled_features,sampled_labels))
 
@@ -85,6 +82,7 @@ print(knn.score(sampled_features,sampled_labels))
 
 #elapsed_time = time.time() - start_time
 #pickle.dump(elapsed_time, open('elapsedtime.sav', 'wb'))
+pickle.dump(scaler, open('scaler.pkl', 'wb'))
 pickle.dump(X_test, open('Xtrain.sav', 'wb'))
 pickle.dump(Y_train, open('Ytrain.sav', 'wb'))
 pickle.dump(X_test, open('Xtest.sav', 'wb'))
